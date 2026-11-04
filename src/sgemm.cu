@@ -1,5 +1,6 @@
 #include "sgemm.cuh"
 
+#include <__clang_cuda_runtime_wrapper.h>
 #include <cstring>
 #include <stdexcept>
 
@@ -70,9 +71,9 @@ __global__ void sgemm_tiled_basic_kernel(int M, int N, int K, float alpha,
 }
 
 template <int BK>
-void launch_sgemm_tiled_basic(int m, int n, int k, float alpha,
-                              const float *a, const float *b, float beta,
-                              float *c, cudaStream_t stream) {
+void launch_sgemm_tiled_basic(int m, int n, int k, float alpha, const float *a,
+                              const float *b, float beta, float *c,
+                              cudaStream_t stream) {
   static_assert(BK > 0 && BK * BK <= 1024,
                 "BK must produce a valid CUDA thread block");
 
@@ -110,10 +111,11 @@ void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
   switch (kernel) {
   case SgemmKernel::Naive: {
     constexpr int block_size = 32;
-    const dim3 threads(block_size, block_size);
-    const dim3 blocks((n + block_size - 1) / block_size,
-                      (m + block_size - 1) / block_size);
-    sgemm_naive<<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
+    const dim3 blockDim(block_size, block_size);
+    const dim3 gridDim((n + block_size - 1) / block_size,
+                       (m + block_size - 1) / block_size);
+    sgemm_naive<<<gridDim, blockDim, 0, stream>>>(m, n, k, alpha, a, b, beta,
+                                                  c);
     break;
   }
   case SgemmKernel::TiledBasic:
