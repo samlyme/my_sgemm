@@ -5,8 +5,9 @@
 
 namespace {
 
-__global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A,
-                            const float *B, float beta, float *C) {
+__global__ void sgemm_naive(const int M, const int N, const int K,
+                            const float alpha, const float *A, const float *B,
+                            const float beta, float *C) {
   const int y = blockIdx.y * blockDim.y + threadIdx.y;
   const int x = blockIdx.x * blockDim.x + threadIdx.x;
 
