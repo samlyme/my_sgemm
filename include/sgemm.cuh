@@ -5,9 +5,7 @@
 // All matrices are row-major:
 //   A is M x K, B is K x N, and C is M x N.
 // Computes C = alpha * A * B + beta * C.
-enum class SgemmKernel {
-  Naive,
-};
+enum class SgemmKernel { Naive, TiledBasic };
 
 const char *kernel_name(SgemmKernel kernel);
 SgemmKernel parse_kernel(const char *name);

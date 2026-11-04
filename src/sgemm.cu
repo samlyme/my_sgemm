@@ -1,5 +1,6 @@
 #include "sgemm.cuh"
 
+#include <__clang_cuda_runtime_wrapper.h>
 #include <cstring>
 #include <stdexcept>
 
@@ -15,6 +16,54 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A,
     for (int i = 0; i < K; ++i) {
       sum += A[y * K + i] * B[i * N + x];
     }
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
+  }
+}
+
+template <int BK>
+__global__ void sgemm_tiled_basic(int M, int N, int K, float alpha,
+                                  const float *A, const float *B, float beta,
+                                  float *C) {
+
+  const int y_block = blockIdx.y * blockDim.y;
+  const int x_block = blockIdx.x * blockDim.x;
+
+  const int y = y_block + threadIdx.y;
+  const int x = x_block + threadIdx.x;
+
+  __shared__ float As[BK][BK] = {0.0};
+  __shared__ float Bs[BK][BK] = {0.0};
+
+  float sum = 0.0;
+
+  // load to SMEM
+  for (int k = 0; k < K; k += BK) { // Loop over tiles
+    // TODO: bounds check for these
+    const int A_tile_y = y;
+    const int A_tile_x = k + threadIdx.x;
+    if (A_tile_y < M && A_tile_x < K) {
+      As[threadIdx.y][threadIdx.x] = A[A_tile_y * K + A_tile_x];
+    } else {
+      As[threadIdx.y][threadIdx.x] = 0.0;
+    }
+
+    const int B_tile_y = k + threadIdx.y;
+    const int B_tile_x = x;
+    if (B_tile_y < K && B_tile_x < N) {
+      Bs[threadIdx.y][threadIdx.x] = B[B_tile_y * N + B_tile_x];
+    } else {
+      Bs[threadIdx.y][threadIdx.x] = 0.0;
+    }
+
+    __syncthreads();
+
+    for (int i = 0; i < BK; i++) {
+      sum += As[threadIdx.y][i] * Bs[i][threadIdx.x];
+    }
+    __syncthreads();
+  }
+
+  if (y < M && x < N) {
     C[y * N + x] = alpha * sum + beta * C[y * N + x];
   }
 }
