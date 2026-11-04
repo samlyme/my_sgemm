@@ -24,11 +24,14 @@ __global__ void sgemm_tiled_basic(int M, int N, int K, float alpha,
                                   const float *A, const float *B, float beta,
                                   float *C) {
 
-  const int y_block = blockIdx.y * blockDim.y;
-  const int x_block = blockIdx.x * blockDim.x;
+  const int y_block = blockIdx.y * BK; // invariant
+  const int x_block = blockIdx.x * BK;
 
-  const int y = y_block + threadIdx.y;
-  const int x = x_block + threadIdx.x;
+  const int y_thread = threadIdx.y;
+  const int x_thread = threadIdx.x;
+
+  const int y = y_block + y_thread;
+  const int x = x_block + x_thread;
 
   __shared__ float As[BK][BK];
   __shared__ float Bs[BK][BK];
@@ -101,8 +104,8 @@ void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
     sgemm_naive<<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
     break;
   case SgemmKernel::TiledBasic:
-    sgemm_tiled_basic<tile><<<blocks, threads, 0, stream>>>(
-        m, n, k, alpha, a, b, beta, c);
+    sgemm_tiled_basic<tile>
+        <<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
     break;
   }
 }
