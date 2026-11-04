@@ -85,6 +85,7 @@ void launch_sgemm_tiled_basic(const int M, const int N, const int K,
       <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
 }
 
+// Trying to increase AI, doesn't really help!
 template <int BM, int BN, int BK>
 __global__ void sgemm_tiled_general_kernel(const int M, const int N,
                                            const int K, const float alpha,
@@ -157,6 +158,72 @@ void launch_sgemm_tiled_general(const int M, const int N, const int K,
   const dim3 blocks((N + BN - 1) / BN, (M + BM - 1) / BM);
   sgemm_tiled_general_kernel<BM, BN, BK>
       <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+}
+
+// AI successfully increased, but now facing L1 Cache pressure.
+template <int BM, int BN, int BK, int TM, int TN>
+__global__ void sgemm_tiled_general_coarsened_kernel(
+    const int M, const int N, const int K, const float alpha, const float *A,
+    const float *B, const float beta, float *C) {
+  const int y_block = blockIdx.y * BM;
+  const int x_block = blockIdx.x * BN;
+
+  const int y_thread = threadIdx.y * TM;
+  const int x_thread = threadIdx.x * TN;
+  const int id_thread = y_thread * BN + x_thread;
+  constexpr int num_threads = BM * BN / (TM * TN); // lol
+
+  const int y = y_block + y_thread;
+  const int x = x_block + x_thread;
+
+  __shared__ float As[BM * BK];
+  __shared__ float Bs[BK * BN];
+
+  float sums[TM][TN] = 0.0;
+
+  for (int k = 0; k < K; k += BK) {
+    for (int id = id_thread; id < BM * BK; id += num_threads) {
+      const int As_y = id / BK;
+      const int As_x = id % BK;
+      const int A_tile_y = y_block + As_y;
+      const int A_tile_x = k + As_x;
+
+      if (A_tile_y < M && A_tile_x < K) {
+        As[As_y * BK + As_x] = A[A_tile_y * K + A_tile_x];
+      } else {
+        As[As_y * BK + As_x] = 0.0f;
+      }
+    }
+
+    for (int id = id_thread; id < BK * BN; id += num_threads) {
+      const int Bs_y = id / BN;
+      const int Bs_x = id % BN;
+      const int B_tile_y = k + Bs_y;
+      const int B_tile_x = x_block + Bs_x;
+
+      if (B_tile_y < K && B_tile_x < N) {
+        Bs[Bs_y * BN + Bs_x] = B[B_tile_y * N + B_tile_x];
+      } else {
+        Bs[Bs_y * BN + Bs_x] = 0.0f;
+      }
+    }
+
+    __syncthreads();
+
+    for (int sum_id = 0; sum_id < TM * TN; sum_id++) {
+      const int sum_y = sum_id / TN, sum_x = sum_id % TN;
+      for (int i = 0; i < BK; i++) {
+        sums[sum_y][sum_x] += As[sum_y][i] * Bs[i][sum_x];
+      }
+    }
+    __syncthreads();
+  }
+
+  for (int sum_id = 0; sum_id < TM * TN; sum_id++) {
+    const int sum_y = sum_id / TN, sum_x = sum_id % TN;
+    C[(y + sum_y) * K + x + sum_x] =
+        alpha * sums[sum_y][sum_x] + beta * C[(y + sum_y) * K + x + sum_x];
+  }
 }
 } // namespace
 
