@@ -16,7 +16,7 @@ ARGS ?=
 
 .DEFAULT_GOAL := run
 
-.PHONY: all build run clean
+.PHONY: all build run large clean
 
 all: run
 
@@ -24,6 +24,9 @@ build: $(TARGET)
 
 run: $(TARGET)
 	./$(TARGET) $(ARGS)
+
+large: $(TARGET)
+	./$(TARGET) --m 8192 --n 8192 --k 8192 $(ARGS)
 
 $(TARGET): $(SOURCES) $(HEADERS)
 	mkdir -p $(BUILD_DIR)

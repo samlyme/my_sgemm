@@ -35,8 +35,11 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 ## Run
 
 ```bash
-# Defaults: naive kernel, M=N=K=8192, 100 timed iterations
-./build/sgemm_bench
+# Build and run with M=N=K=1024
+make
+
+# Build and run the large M=N=K=8192 benchmark
+make large
 
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --help

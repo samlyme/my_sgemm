@@ -25,9 +25,9 @@
 namespace {
 
 struct Options {
-  int m = 8192;
-  int n = 8192;
-  int k = 8192;
+  int m = 1024;
+  int n = 1024;
+  int k = 1024;
   int iterations = 100;
   SgemmKernel kernel = SgemmKernel::Naive;
 };
