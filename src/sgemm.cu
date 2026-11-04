@@ -171,6 +171,16 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-basic";
   case SgemmKernel::TiledGeneral:
     return "tiled-general";
+  case SgemmKernel::TiledGeneral8x8x8:
+    return "tiled-general-8x8x8";
+  case SgemmKernel::TiledGeneral16x16x8:
+    return "tiled-general-16x16x8";
+  case SgemmKernel::TiledGeneral16x16x16:
+    return "tiled-general-16x16x16";
+  case SgemmKernel::TiledGeneral32x8x16:
+    return "tiled-general-32x8x16";
+  case SgemmKernel::TiledGeneral8x32x16:
+    return "tiled-general-8x32x16";
   }
   return "unknown";
 }
@@ -184,6 +194,21 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general") == 0) {
     return SgemmKernel::TiledGeneral;
+  }
+  if (std::strcmp(name, "tiled-general-8x8x8") == 0) {
+    return SgemmKernel::TiledGeneral8x8x8;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x8") == 0) {
+    return SgemmKernel::TiledGeneral16x16x8;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x16") == 0) {
+    return SgemmKernel::TiledGeneral16x16x16;
+  }
+  if (std::strcmp(name, "tiled-general-32x8x16") == 0) {
+    return SgemmKernel::TiledGeneral32x8x16;
+  }
+  if (std::strcmp(name, "tiled-general-8x32x16") == 0) {
+    return SgemmKernel::TiledGeneral8x32x16;
   }
   throw std::invalid_argument("unknown kernel");
 }
@@ -206,8 +231,25 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C, stream);
     break;
   case SgemmKernel::TiledGeneral:
+  case SgemmKernel::TiledGeneral16x16x16:
     launch_sgemm_tiled_general<16, 16, 16>(M, N, K, alpha, A, B, beta, C,
                                            stream);
+    break;
+  case SgemmKernel::TiledGeneral8x8x8:
+    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C,
+                                        stream);
+    break;
+  case SgemmKernel::TiledGeneral16x16x8:
+    launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C,
+                                          stream);
+    break;
+  case SgemmKernel::TiledGeneral32x8x16:
+    launch_sgemm_tiled_general<32, 8, 16>(M, N, K, alpha, A, B, beta, C,
+                                          stream);
+    break;
+  case SgemmKernel::TiledGeneral8x32x16:
+    launch_sgemm_tiled_general<8, 32, 16>(M, N, K, alpha, A, B, beta, C,
+                                          stream);
     break;
   }
 }

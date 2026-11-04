@@ -7,7 +7,12 @@ NVCC ?= $(if $(CUDA_NVCC),$(CUDA_NVCC),nvcc)
 ARCH ?= 86
 BUILD_DIR ?= build
 TARGET := $(BUILD_DIR)/sgemm_bench
-KERNELS := naive tiled-basic tiled-general
+KERNELS := naive tiled-basic \
+	tiled-general-8x8x8 \
+	tiled-general-16x16x8 \
+	tiled-general-16x16x16 \
+	tiled-general-32x8x16 \
+	tiled-general-8x32x16
 SOURCES := src/main.cu src/sgemm.cu
 HEADERS := $(wildcard include/*.cuh)
 CPPFLAGS ?= -Iinclude

@@ -35,17 +35,18 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 ## Run
 
 ```bash
-# Build and run every kernel with M=N=K=1024
+# Build and run every kernel/configuration with M=N=K=1024
 make
 
 # Build and run the large M=N=K=8192 benchmark
 make large
 
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
+./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
 ./build/sgemm_bench --help
 ```
 
-The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s.
+The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` tile configurations.
 
 ## Add a kernel
 

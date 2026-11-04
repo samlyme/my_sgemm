@@ -33,8 +33,12 @@ struct Options {
 };
 
 void print_usage(const char* program) {
-  std::cout << "Usage: " << program
-            << " [--kernel naive|tiled-basic|tiled-general] [--m M] [--n N] [--k K] [--iters N]\n";
+  std::cout
+      << "Usage: " << program
+      << " [--kernel naive|tiled-basic|tiled-general|tiled-general-BMxBNxBK]"
+         " [--m M] [--n N] [--k K] [--iters N]\n"
+      << "Tiled-general configurations: 8x8x8, 16x16x8, 16x16x16,"
+         " 32x8x16, 8x32x16\n";
 }
 
 int positive_int(const char* value, const char* option) {
