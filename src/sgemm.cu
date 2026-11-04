@@ -109,9 +109,15 @@ __global__ void sgemm_tiled_general_kernel(
       const int As_x = id % BK;
       const int A_tile_y = y_block + As_y;
       const int A_tile_x = k + As_x;
-      As[id] = A_tile_y < M && A_tile_x < K
-                   ? A[A_tile_y * K + A_tile_x]
-                   : 0.0f;
+
+      // Technically redundant, but more readable. Can optimize compute later.
+      if (As_y < BM && As_x < BK) {
+        if (A_tile_y < M && A_tile_x < K) {
+          As[As_y * BK + As_x] = A[A_tile_y * K + A_tile_x];
+        } else {
+          As[As_y * BK + As_x] = 0.0f;
+        }
+      }
     }
 
     for (int id = id_thread; id < BK * BN; id += num_threads) {
@@ -119,9 +125,14 @@ __global__ void sgemm_tiled_general_kernel(
       const int Bs_x = id % BN;
       const int B_tile_y = k + Bs_y;
       const int B_tile_x = x_block + Bs_x;
-      Bs[id] = B_tile_y < K && B_tile_x < N
-                   ? B[B_tile_y * N + B_tile_x]
-                   : 0.0f;
+
+      if (Bs_y < BK && Bs_x < BN) {
+        if (B_tile_y < K && B_tile_x < N) {
+          Bs[Bs_y * BN + Bs_x] = B[B_tile_y * N + B_tile_x];
+        } else {
+          Bs[Bs_y * BN + Bs_x] = 0.0f;
+        }
+      }
     }
     __syncthreads();
 
