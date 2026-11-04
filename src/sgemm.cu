@@ -39,7 +39,7 @@ SgemmKernel parse_kernel(const char *name) {
 void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
                   const float *a, const float *b, float beta, float *c,
                   cudaStream_t stream) {
-  constexpr int tile = 16;
+  constexpr int tile = 32;
   const dim3 threads(tile, tile);
   const dim3 blocks((n + tile - 1) / tile, (m + tile - 1) / tile);
 
