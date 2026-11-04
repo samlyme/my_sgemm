@@ -1,7 +1,7 @@
 #include "sgemm.cuh"
 
+#include <cstring>
 #include <stdexcept>
-#include <string>
 
 namespace {
 
@@ -78,14 +78,13 @@ const char* kernel_name(SgemmKernel kernel) {
 }
 
 SgemmKernel parse_kernel(const char* name) {
-  const std::string value(name);
-  if (value == "naive") {
+  if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
   }
-  if (value == "tiled") {
+  if (std::strcmp(name, "tiled") == 0) {
     return SgemmKernel::Tiled;
   }
-  throw std::invalid_argument("unknown kernel '" + value + "' (use naive or tiled)");
+  throw std::invalid_argument("unknown kernel");
 }
 
 void launch_sgemm(SgemmKernel kernel,
