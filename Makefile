@@ -12,7 +12,11 @@ KERNELS := naive tiled-basic \
 	tiled-general-16x16x8 \
 	tiled-general-16x16x16 \
 	tiled-general-32x8x16 \
-	tiled-general-8x32x16
+	tiled-general-8x32x16 \
+	tiled-general-coarsened-32x32x8-2x2 \
+	tiled-general-coarsened-64x64x8-4x4 \
+	tiled-general-coarsened-64x64x16-4x4 \
+	tiled-general-coarsened-128x64x8-8x4
 SOURCES := src/main.cu src/sgemm.cu
 HEADERS := $(wildcard include/*.cuh)
 CPPFLAGS ?= -Iinclude

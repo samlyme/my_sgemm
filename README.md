@@ -43,10 +43,11 @@ make large
 
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
+./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50
 ./build/sgemm_bench --help
 ```
 
-The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` tile configurations.
+The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
 ## Add a kernel
 
