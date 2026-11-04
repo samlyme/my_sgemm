@@ -33,10 +33,22 @@ all: run
 build: $(TARGET)
 
 run: $(TARGET)
-	@set -e; for kernel in $(KERNELS); do \
+	@set -e; \
+	summary=$$(mktemp); \
+	trap 'rm -f "$$summary"' EXIT; \
+	for kernel in $(KERNELS); do \
 		echo "=== $$kernel ==="; \
-		./$(TARGET) --kernel $$kernel $(ARGS); \
-	done
+		output=$$(./$(TARGET) --kernel $$kernel $(ARGS)); \
+		printf '%s\n' "$$output"; \
+		check=$$(printf '%s\n' "$$output" | awk '/^check:/ { print $$2 }'); \
+		time=$$(printf '%s\n' "$$output" | awk '/^time:/ { print $$2 " " $$3 }'); \
+		perf=$$(printf '%s\n' "$$output" | awk '/^perf:/ { print $$2 " " $$3 }'); \
+		printf '%s|%s|%s|%s\n' "$$kernel" "$$check" "$$time" "$$perf" >> "$$summary"; \
+	done; \
+	printf '\n%-44s  %-7s  %12s  %16s\n' "KERNEL" "CHECK" "TIME" "PERFORMANCE"; \
+	printf '%-44s  %-7s  %12s  %16s\n' \
+		'--------------------------------------------' '-------' '------------' '----------------'; \
+	awk -F '|' '{ printf "%-44s  %-7s  %12s  %16s\n", $$1, $$2, $$3, $$4 }' "$$summary"
 
 large: $(TARGET)
 	./$(TARGET) --m 8192 --n 8192 --k 8192 $(ARGS)
