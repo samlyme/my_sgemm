@@ -3,3 +3,6 @@ CompileFlags:
   Remove:
     - -forward-unknown-to-host-compiler
     - --generate-code*
+  Add:
+    - --cuda-path=/home/sam/code/SGEMM_CUDA/.cuda
+    - --cuda-gpu-arch=sm_86
