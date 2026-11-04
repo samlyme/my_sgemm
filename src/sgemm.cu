@@ -5,20 +5,18 @@
 
 namespace {
 
-__global__ void sgemm_naive(int m, int n, int k, float alpha, const float *a,
-                            const float *b, float beta, float *c) {
-  const int row = blockIdx.y * blockDim.y + threadIdx.y;
-  const int col = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A,
+                            const float *B, float beta, float *C) {
+  const int y = blockIdx.y * blockDim.y + threadIdx.y;
+  const int x = blockIdx.x * blockDim.x + threadIdx.x;
 
-  if (row >= m || col >= n) {
-    return;
+  if (y < M && x < N) {
+    float sum = 0.0f;
+    for (int i = 0; i < K; ++i) {
+      sum += A[y * K + i] * B[i * N + x];
+    }
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
   }
-
-  float sum = 0.0f;
-  for (int inner = 0; inner < k; ++inner) {
-    sum += a[row * k + inner] * b[inner * n + col];
-  }
-  c[row * n + col] = alpha * sum + beta * c[row * n + col];
 }
 
 } // namespace
