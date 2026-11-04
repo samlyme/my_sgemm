@@ -38,6 +38,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 # Build and run every kernel/configuration with M=N=K=1024
 make
 
+# Sweep one kernel over square problem sizes from 256 through 8192
+make sweep KERNEL=tiled-general-coarsened-64x64x8-4x4
+
 # Build and run the large M=N=K=8192 benchmark
 make large
 
@@ -48,6 +51,12 @@ make large
 ```
 
 The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
+
+The `sweep` target tests `M=N=K` at `256 512 1024 2048 4096 8192`, reducing the iteration count for larger problems. Override the sizes or iteration count when needed:
+
+```bash
+make sweep KERNEL=naive SIZES="128 256 512" ARGS="--iters 10"
+```
 
 ## Add a kernel
 

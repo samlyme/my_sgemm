@@ -23,10 +23,12 @@ CPPFLAGS ?= -Iinclude
 NVCCFLAGS ?= -O3 -std=c++17 --use_fast_math --expt-relaxed-constexpr
 GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 ARGS ?=
+KERNEL ?=
+SIZES ?= 256 512 1024 2048 4096 8192
 
 .DEFAULT_GOAL := run
 
-.PHONY: all build run large clean
+.PHONY: all build run sweep large clean
 
 all: run
 
@@ -49,6 +51,34 @@ run: $(TARGET)
 	printf '%-44s  %-7s  %12s  %16s\n' \
 		'--------------------------------------------' '-------' '------------' '----------------'; \
 	awk -F '|' '{ printf "%-44s  %-7s  %12s  %16s\n", $$1, $$2, $$3, $$4 }' "$$summary"
+
+sweep: $(TARGET)
+	@if [ -z "$(KERNEL)" ]; then \
+		echo "error: specify a kernel, for example:"; \
+		echo "  make sweep KERNEL=tiled-general-coarsened-64x64x8-4x4"; \
+		exit 2; \
+	fi
+	@set -e; \
+	summary=$$(mktemp); \
+	trap 'rm -f "$$summary"' EXIT; \
+	for size in $(SIZES); do \
+		if [ "$$size" -le 1024 ]; then iters=100; \
+		elif [ "$$size" -le 2048 ]; then iters=25; \
+		elif [ "$$size" -le 4096 ]; then iters=5; \
+		else iters=1; fi; \
+		echo "=== $(KERNEL): $$size x $$size x $$size ==="; \
+		output=$$(./$(TARGET) --kernel "$(KERNEL)" \
+			--m "$$size" --n "$$size" --k "$$size" --iters "$$iters" $(ARGS)); \
+		printf '%s\n' "$$output"; \
+		check=$$(printf '%s\n' "$$output" | awk '/^check:/ { print $$2 }'); \
+		time=$$(printf '%s\n' "$$output" | awk '/^time:/ { print $$2 " " $$3 }'); \
+		perf=$$(printf '%s\n' "$$output" | awk '/^perf:/ { print $$2 " " $$3 }'); \
+		printf '%s|%s|%s|%s\n' "$$size" "$$check" "$$time" "$$perf" >> "$$summary"; \
+	done; \
+	printf '\nKernel: %s\n' "$(KERNEL)"; \
+	printf '%10s  %-7s  %12s  %16s\n' "M=N=K" "CHECK" "TIME" "PERFORMANCE"; \
+	printf '%10s  %-7s  %12s  %16s\n' '----------' '-------' '------------' '----------------'; \
+	awk -F '|' '{ printf "%10s  %-7s  %12s  %16s\n", $$1, $$2, $$3, $$4 }' "$$summary"
 
 large: $(TARGET)
 	./$(TARGET) --m 8192 --n 8192 --k 8192 $(ARGS)
