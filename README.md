@@ -57,6 +57,6 @@ The program checks the selected kernel against a CPU reference, then reports ave
 Useful profiling commands:
 
 ```bash
-ncu ./build/sgemm_bench --kernel tiled --m 2048 --n 2048 --k 2048
-nsys profile ./build/sgemm_bench --kernel tiled
+ncu ./build/sgemm_bench --kernel tiled-basic --m 2048 --n 2048 --k 2048
+nsys profile ./build/sgemm_bench --kernel tiled-basic
 ```

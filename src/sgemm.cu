@@ -75,7 +75,7 @@ const char *kernel_name(SgemmKernel kernel) {
   case SgemmKernel::Naive:
     return "naive";
   case SgemmKernel::TiledBasic:
-    return "tiled";
+    return "tiled-basic";
   }
   return "unknown";
 }
@@ -84,7 +84,7 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
   }
-  if (std::strcmp(name, "tiled") == 0) {
+  if (std::strcmp(name, "tiled-basic") == 0) {
     return SgemmKernel::TiledBasic;
   }
   throw std::invalid_argument("unknown kernel: " + std::string(name));

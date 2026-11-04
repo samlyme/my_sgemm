@@ -34,7 +34,7 @@ struct Options {
 
 void print_usage(const char* program) {
   std::cout << "Usage: " << program
-            << " [--kernel naive|tiled] [--m M] [--n N] [--k K] [--iters N]\n";
+            << " [--kernel naive|tiled-basic] [--m M] [--n N] [--k K] [--iters N]\n";
 }
 
 int positive_int(const char* value, const char* option) {
