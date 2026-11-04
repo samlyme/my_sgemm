@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <stdexcept>
-#include <string>
 
 namespace {
 
@@ -87,7 +86,7 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-basic") == 0) {
     return SgemmKernel::TiledBasic;
   }
-  throw std::invalid_argument("unknown kernel: " + std::string(name));
+  throw std::invalid_argument("unknown kernel");
 }
 
 void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
