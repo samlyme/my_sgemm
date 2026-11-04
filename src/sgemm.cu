@@ -21,9 +21,10 @@ __global__ void sgemm_naive(const int M, const int N, const int K,
 }
 
 template <int BK>
-__global__ void sgemm_tiled_basic_kernel(
-    const int M, const int N, const int K, const float alpha, const float *A,
-    const float *B, const float beta, float *C) {
+__global__ void sgemm_tiled_basic_kernel(const int M, const int N, const int K,
+                                         const float alpha, const float *A,
+                                         const float *B, const float beta,
+                                         float *C) {
   const int y_block = blockIdx.y * BK;
   const int x_block = blockIdx.x * BK;
 
@@ -72,8 +73,8 @@ __global__ void sgemm_tiled_basic_kernel(
 
 template <int BK>
 void launch_sgemm_tiled_basic(const int M, const int N, const int K,
-                              const float alpha, const float *A,
-                              const float *B, const float beta, float *C,
+                              const float alpha, const float *A, const float *B,
+                              const float beta, float *C,
                               const cudaStream_t stream) {
   static_assert(BK > 0 && BK * BK <= 1024,
                 "BK must produce a valid CUDA thread block");
@@ -85,9 +86,10 @@ void launch_sgemm_tiled_basic(const int M, const int N, const int K,
 }
 
 template <int BM, int BN, int BK>
-__global__ void sgemm_tiled_general_kernel(
-    const int M, const int N, const int K, const float alpha, const float *A,
-    const float *B, const float beta, float *C) {
+__global__ void sgemm_tiled_general_kernel(const int M, const int N,
+                                           const int K, const float alpha,
+                                           const float *A, const float *B,
+                                           const float beta, float *C) {
   const int y_block = blockIdx.y * BM;
   const int x_block = blockIdx.x * BN;
 
@@ -111,13 +113,10 @@ __global__ void sgemm_tiled_general_kernel(
       const int A_tile_y = y_block + As_y;
       const int A_tile_x = k + As_x;
 
-      // Technically redundant, but more readable. Can optimize compute later.
-      if (As_y < BM && As_x < BK) {
-        if (A_tile_y < M && A_tile_x < K) {
-          As[As_y * BK + As_x] = A[A_tile_y * K + A_tile_x];
-        } else {
-          As[As_y * BK + As_x] = 0.0f;
-        }
+      if (A_tile_y < M && A_tile_x < K) {
+        As[As_y * BK + As_x] = A[A_tile_y * K + A_tile_x];
+      } else {
+        As[As_y * BK + As_x] = 0.0f;
       }
     }
 
@@ -127,12 +126,10 @@ __global__ void sgemm_tiled_general_kernel(
       const int B_tile_y = k + Bs_y;
       const int B_tile_x = x_block + Bs_x;
 
-      if (Bs_y < BK && Bs_x < BN) {
-        if (B_tile_y < K && B_tile_x < N) {
-          Bs[Bs_y * BN + Bs_x] = B[B_tile_y * N + B_tile_x];
-        } else {
-          Bs[Bs_y * BN + Bs_x] = 0.0f;
-        }
+      if (B_tile_y < K && B_tile_x < N) {
+        Bs[Bs_y * BN + Bs_x] = B[B_tile_y * N + B_tile_x];
+      } else {
+        Bs[Bs_y * BN + Bs_x] = 0.0f;
       }
     }
     __syncthreads();
@@ -236,8 +233,7 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                                            stream);
     break;
   case SgemmKernel::TiledGeneral8x8x8:
-    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C,
-                                        stream);
+    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C, stream);
     break;
   case SgemmKernel::TiledGeneral16x16x8:
     launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C,
