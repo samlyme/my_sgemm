@@ -29,12 +29,12 @@ struct Options {
   int n = 1024;
   int k = 1024;
   int iterations = 100;
-  SgemmKernel kernel = SgemmKernel::Tiled;
+  SgemmKernel kernel = SgemmKernel::Naive;
 };
 
 void print_usage(const char* program) {
   std::cout << "Usage: " << program
-            << " [--kernel naive|tiled] [--m M] [--n N] [--k K] [--iters N]\n";
+            << " [--kernel naive] [--m M] [--n N] [--k K] [--iters N]\n";
 }
 
 int positive_int(const char* value, const char* option) {
