@@ -1,6 +1,5 @@
 #include "sgemm.cuh"
 
-#include <__clang_cuda_runtime_wrapper.h>
 #include <cstring>
 #include <stdexcept>
 
