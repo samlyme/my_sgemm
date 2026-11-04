@@ -25,6 +25,7 @@ GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 ARGS ?=
 KERNEL ?=
 SIZES ?= 256 512 1024 2048 4096 8192
+PEAK_GFLOPS ?= 35580
 
 .DEFAULT_GOAL := run
 
@@ -45,12 +46,16 @@ run: $(TARGET)
 		check=$$(printf '%s\n' "$$output" | awk '/^check:/ { print $$2 }'); \
 		time=$$(printf '%s\n' "$$output" | awk '/^time:/ { print $$2 " " $$3 }'); \
 		perf=$$(printf '%s\n' "$$output" | awk '/^perf:/ { print $$2 " " $$3 }'); \
-		printf '%s|%s|%s|%s\n' "$$kernel" "$$check" "$$time" "$$perf" >> "$$summary"; \
+		peak=$$(awk -v perf="$$perf" -v peak="$(PEAK_GFLOPS)" \
+			'BEGIN { printf "%.1f%%", 100 * perf / peak }'); \
+		printf '%s|%s|%s|%s|%s\n' "$$kernel" "$$check" "$$time" "$$perf" "$$peak" >> "$$summary"; \
 	done; \
-	printf '\n%-44s  %-7s  %12s  %16s\n' "KERNEL" "CHECK" "TIME" "PERFORMANCE"; \
-	printf '%-44s  %-7s  %12s  %16s\n' \
-		'--------------------------------------------' '-------' '------------' '----------------'; \
-	awk -F '|' '{ printf "%-44s  %-7s  %12s  %16s\n", $$1, $$2, $$3, $$4 }' "$$summary"
+	printf '\nPeak FP32 throughput: %s GFLOP/s\n' "$(PEAK_GFLOPS)"; \
+	printf '%-44s  %-7s  %12s  %16s  %9s\n' \
+		"KERNEL" "CHECK" "TIME" "PERFORMANCE" "% OF PEAK"; \
+	printf '%-44s  %-7s  %12s  %16s  %9s\n' \
+		'--------------------------------------------' '-------' '------------' '----------------' '---------'; \
+	awk -F '|' '{ printf "%-44s  %-7s  %12s  %16s  %9s\n", $$1, $$2, $$3, $$4, $$5 }' "$$summary"
 
 sweep: $(TARGET)
 	@if [ -z "$(KERNEL)" ]; then \
@@ -73,12 +78,17 @@ sweep: $(TARGET)
 		check=$$(printf '%s\n' "$$output" | awk '/^check:/ { print $$2 }'); \
 		time=$$(printf '%s\n' "$$output" | awk '/^time:/ { print $$2 " " $$3 }'); \
 		perf=$$(printf '%s\n' "$$output" | awk '/^perf:/ { print $$2 " " $$3 }'); \
-		printf '%s|%s|%s|%s\n' "$$size" "$$check" "$$time" "$$perf" >> "$$summary"; \
+		peak=$$(awk -v perf="$$perf" -v peak="$(PEAK_GFLOPS)" \
+			'BEGIN { printf "%.1f%%", 100 * perf / peak }'); \
+		printf '%s|%s|%s|%s|%s\n' "$$size" "$$check" "$$time" "$$perf" "$$peak" >> "$$summary"; \
 	done; \
 	printf '\nKernel: %s\n' "$(KERNEL)"; \
-	printf '%10s  %-7s  %12s  %16s\n' "M=N=K" "CHECK" "TIME" "PERFORMANCE"; \
-	printf '%10s  %-7s  %12s  %16s\n' '----------' '-------' '------------' '----------------'; \
-	awk -F '|' '{ printf "%10s  %-7s  %12s  %16s\n", $$1, $$2, $$3, $$4 }' "$$summary"
+	printf 'Peak FP32 throughput: %s GFLOP/s\n' "$(PEAK_GFLOPS)"; \
+	printf '%10s  %-7s  %12s  %16s  %9s\n' \
+		"M=N=K" "CHECK" "TIME" "PERFORMANCE" "% OF PEAK"; \
+	printf '%10s  %-7s  %12s  %16s  %9s\n' \
+		'----------' '-------' '------------' '----------------' '---------'; \
+	awk -F '|' '{ printf "%10s  %-7s  %12s  %16s  %9s\n", $$1, $$2, $$3, $$4, $$5 }' "$$summary"
 
 large: $(TARGET)
 	./$(TARGET) --m 8192 --n 8192 --k 8192 $(ARGS)

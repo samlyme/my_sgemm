@@ -52,10 +52,13 @@ make large
 
 The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
-The `sweep` target tests `M=N=K` at `256 512 1024 2048 4096 8192`, reducing the iteration count for larger problems. Override the sizes or iteration count when needed:
+The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
+
+The `sweep` target tests `M=N=K` at `256 512 1024 2048 4096 8192`, reducing the iteration count for larger problems. Override the peak throughput, sizes, or iteration count when needed:
 
 ```bash
-make sweep KERNEL=naive SIZES="128 256 512" ARGS="--iters 10"
+make sweep KERNEL=naive PEAK_GFLOPS=29770 \
+  SIZES="128 256 512" ARGS="--iters 10"
 ```
 
 ## Add a kernel
