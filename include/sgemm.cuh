@@ -7,19 +7,11 @@
 // Computes C = alpha * A * B + beta * C.
 enum class SgemmKernel {
   Naive,
-  Tiled,
 };
 
-const char* kernel_name(SgemmKernel kernel);
-SgemmKernel parse_kernel(const char* name);
+const char *kernel_name(SgemmKernel kernel);
+SgemmKernel parse_kernel(const char *name);
 
-void launch_sgemm(SgemmKernel kernel,
-                  int m,
-                  int n,
-                  int k,
-                  float alpha,
-                  const float* a,
-                  const float* b,
-                  float beta,
-                  float* c,
+void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
+                  const float *a, const float *b, float beta, float *c,
                   cudaStream_t stream = nullptr);
