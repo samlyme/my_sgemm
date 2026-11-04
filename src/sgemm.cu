@@ -42,25 +42,25 @@ __global__ void sgemm_tiled_basic(int M, int N, int K, float alpha,
   for (int k = 0; k < K; k += BK) { // Loop over tiles
     // TODO: bounds check for these
     const int A_tile_y = y;
-    const int A_tile_x = k + threadIdx.x;
+    const int A_tile_x = k + x_thread;
     if (A_tile_y < M && A_tile_x < K) {
-      As[threadIdx.y][threadIdx.x] = A[A_tile_y * K + A_tile_x];
+      As[y_thread][x_thread] = A[A_tile_y * K + A_tile_x];
     } else {
-      As[threadIdx.y][threadIdx.x] = 0.0;
+      As[y_thread][x_thread] = 0.0;
     }
 
-    const int B_tile_y = k + threadIdx.y;
+    const int B_tile_y = k + y_thread;
     const int B_tile_x = x;
     if (B_tile_y < K && B_tile_x < N) {
-      Bs[threadIdx.y][threadIdx.x] = B[B_tile_y * N + B_tile_x];
+      Bs[y_thread][x_thread] = B[B_tile_y * N + B_tile_x];
     } else {
-      Bs[threadIdx.y][threadIdx.x] = 0.0;
+      Bs[y_thread][x_thread] = 0.0;
     }
 
     __syncthreads();
 
     for (int i = 0; i < BK; i++) {
-      sum += As[threadIdx.y][i] * Bs[i][threadIdx.x];
+      sum += As[y_thread][i] * Bs[i][x_thread];
     }
     __syncthreads();
   }
