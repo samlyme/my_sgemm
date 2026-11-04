@@ -20,9 +20,9 @@ __global__ void sgemm_naive(int M, int N, int K, float alpha, const float *A,
 }
 
 template <int BK>
-__global__ void sgemm_tiled_basic_kernel(int M, int N, int K, float alpha,
-                                         const float *A, const float *B,
-                                         float beta, float *C) {
+__global__ void sgemm_tiled_basic_kernel(
+    const int M, const int N, const int K, const float alpha, const float *A,
+    const float *B, const float beta, float *C) {
   const int y_block = blockIdx.y * BK;
   const int x_block = blockIdx.x * BK;
 
@@ -70,22 +70,23 @@ __global__ void sgemm_tiled_basic_kernel(int M, int N, int K, float alpha,
 }
 
 template <int BK>
-void launch_sgemm_tiled_basic(int m, int n, int k, float alpha, const float *a,
-                              const float *b, float beta, float *c,
-                              cudaStream_t stream) {
+void launch_sgemm_tiled_basic(const int M, const int N, const int K,
+                              const float alpha, const float *A,
+                              const float *B, const float beta, float *C,
+                              const cudaStream_t stream) {
   static_assert(BK > 0 && BK * BK <= 1024,
                 "BK must produce a valid CUDA thread block");
 
   const dim3 threads(BK, BK);
-  const dim3 blocks((n + BK - 1) / BK, (m + BK - 1) / BK);
+  const dim3 blocks((N + BK - 1) / BK, (M + BK - 1) / BK);
   sgemm_tiled_basic_kernel<BK>
-      <<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
+      <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
 }
 
 template <int BM, int BN, int BK>
-__global__ void sgemm_tiled_general_kernel(int M, int N, int K, float alpha,
-                                           const float *A, const float *B,
-                                           float beta, float *C) {
+__global__ void sgemm_tiled_general_kernel(
+    const int M, const int N, const int K, const float alpha, const float *A,
+    const float *B, const float beta, float *C) {
   const int y_block = blockIdx.y * BM;
   const int x_block = blockIdx.x * BN;
 
@@ -136,16 +137,17 @@ __global__ void sgemm_tiled_general_kernel(int M, int N, int K, float alpha,
 }
 
 template <int BM, int BN, int BK>
-void launch_sgemm_tiled_general(int m, int n, int k, float alpha,
-                                const float *a, const float *b, float beta,
-                                float *c, cudaStream_t stream) {
+void launch_sgemm_tiled_general(const int M, const int N, const int K,
+                                const float alpha, const float *A,
+                                const float *B, const float beta, float *C,
+                                const cudaStream_t stream) {
   static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
                 "tile dimensions must produce a valid CUDA thread block");
 
   const dim3 threads(BN, BM);
-  const dim3 blocks((n + BN - 1) / BN, (m + BM - 1) / BM);
+  const dim3 blocks((N + BN - 1) / BN, (M + BM - 1) / BM);
   sgemm_tiled_general_kernel<BM, BN, BK>
-      <<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
+      <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
 
@@ -174,24 +176,25 @@ SgemmKernel parse_kernel(const char *name) {
   throw std::invalid_argument("unknown kernel");
 }
 
-void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
-                  const float *a, const float *b, float beta, float *c,
-                  cudaStream_t stream) {
+void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
+                  const int K, const float alpha, const float *A,
+                  const float *B, const float beta, float *C,
+                  const cudaStream_t stream) {
   switch (kernel) {
   case SgemmKernel::Naive: {
     constexpr int block_size = 32;
     const dim3 blockDim(block_size, block_size);
-    const dim3 gridDim((n + block_size - 1) / block_size,
-                       (m + block_size - 1) / block_size);
-    sgemm_naive<<<gridDim, blockDim, 0, stream>>>(m, n, k, alpha, a, b, beta,
-                                                  c);
+    const dim3 gridDim((N + block_size - 1) / block_size,
+                       (M + block_size - 1) / block_size);
+    sgemm_naive<<<gridDim, blockDim, 0, stream>>>(M, N, K, alpha, A, B, beta,
+                                                  C);
     break;
   }
   case SgemmKernel::TiledBasic:
-    launch_sgemm_tiled_basic<32>(m, n, k, alpha, a, b, beta, c, stream);
+    launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C, stream);
     break;
   case SgemmKernel::TiledGeneral:
-    launch_sgemm_tiled_general<16, 16, 16>(m, n, k, alpha, a, b, beta, c,
+    launch_sgemm_tiled_general<16, 16, 16>(M, N, K, alpha, A, B, beta, C,
                                            stream);
     break;
   }

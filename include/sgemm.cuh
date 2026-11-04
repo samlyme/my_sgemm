@@ -10,6 +10,7 @@ enum class SgemmKernel { Naive, TiledBasic, TiledGeneral };
 const char *kernel_name(SgemmKernel kernel);
 SgemmKernel parse_kernel(const char *name);
 
-void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
-                  const float *a, const float *b, float beta, float *c,
-                  cudaStream_t stream = nullptr);
+void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
+                  const int K, const float alpha, const float *A,
+                  const float *B, const float beta, float *C,
+                  const cudaStream_t stream = nullptr);
