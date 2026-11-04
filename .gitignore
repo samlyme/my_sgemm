@@ -1,0 +1,12 @@
+build/
+.cache/
+compile_commands.json
+*.o
+*.a
+*.so
+*.out
+
+# Nsight output
+*.ncu-rep
+*.nsys-rep
+*.qdrep
