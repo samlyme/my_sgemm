@@ -1,8 +1,8 @@
 #include "sgemm.cuh"
 
-#include <__clang_cuda_runtime_wrapper.h>
 #include <cstring>
 #include <stdexcept>
+#include <string>
 
 namespace {
 
@@ -31,8 +31,8 @@ __global__ void sgemm_tiled_basic(int M, int N, int K, float alpha,
   const int y = y_block + threadIdx.y;
   const int x = x_block + threadIdx.x;
 
-  __shared__ float As[BK][BK] = {0.0};
-  __shared__ float Bs[BK][BK] = {0.0};
+  __shared__ float As[BK][BK];
+  __shared__ float Bs[BK][BK];
 
   float sum = 0.0;
 
@@ -74,6 +74,8 @@ const char *kernel_name(SgemmKernel kernel) {
   switch (kernel) {
   case SgemmKernel::Naive:
     return "naive";
+  case SgemmKernel::TiledBasic:
+    return "tiled";
   }
   return "unknown";
 }
@@ -82,7 +84,10 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
   }
-  throw std::invalid_argument("unknown kernel");
+  if (std::strcmp(name, "tiled") == 0) {
+    return SgemmKernel::TiledBasic;
+  }
+  throw std::invalid_argument("unknown kernel: " + std::string(name));
 }
 
 void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
@@ -95,6 +100,10 @@ void launch_sgemm(SgemmKernel kernel, int m, int n, int k, float alpha,
   switch (kernel) {
   case SgemmKernel::Naive:
     sgemm_naive<<<blocks, threads, 0, stream>>>(m, n, k, alpha, a, b, beta, c);
+    break;
+  case SgemmKernel::TiledBasic:
+    sgemm_tiled_basic<tile><<<blocks, threads, 0, stream>>>(
+        m, n, k, alpha, a, b, beta, c);
     break;
   }
 }
