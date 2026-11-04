@@ -35,7 +35,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 ## Run
 
 ```bash
-# Defaults: tiled kernel, M=N=K=1024, 100 timed iterations
+# Defaults: naive kernel, M=N=K=8192, 100 timed iterations
 ./build/sgemm_bench
 
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
