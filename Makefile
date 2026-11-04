@@ -7,6 +7,7 @@ NVCC ?= $(if $(CUDA_NVCC),$(CUDA_NVCC),nvcc)
 ARCH ?= 86
 BUILD_DIR ?= build
 TARGET := $(BUILD_DIR)/sgemm_bench
+KERNELS := naive tiled-basic
 SOURCES := src/main.cu src/sgemm.cu
 HEADERS := $(wildcard include/*.cuh)
 CPPFLAGS ?= -Iinclude
@@ -23,7 +24,10 @@ all: run
 build: $(TARGET)
 
 run: $(TARGET)
-	./$(TARGET) $(ARGS)
+	@set -e; for kernel in $(KERNELS); do \
+		echo "=== $$kernel ==="; \
+		./$(TARGET) --kernel $$kernel $(ARGS); \
+	done
 
 large: $(TARGET)
 	./$(TARGET) --m 8192 --n 8192 --k 8192 $(ARGS)

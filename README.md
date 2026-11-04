@@ -35,7 +35,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 ## Run
 
 ```bash
-# Build and run with M=N=K=1024
+# Build and run every kernel with M=N=K=1024
 make
 
 # Build and run the large M=N=K=8192 benchmark
@@ -52,7 +52,8 @@ The program checks the selected kernel against a CPU reference, then reports ave
 1. Add an entry to `SgemmKernel` in `include/sgemm.cuh`.
 2. Implement the kernel in `src/sgemm.cu` (or add another `.cu` file to `CMakeLists.txt`).
 3. Extend `kernel_name`, `parse_kernel`, and `launch_sgemm`.
-4. Compare it using the same matrix dimensions and iteration count.
+4. Add its command-line name to `KERNELS` in `Makefile`.
+5. Compare it using the same matrix dimensions and iteration count.
 
 Useful profiling commands:
 
