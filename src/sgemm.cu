@@ -141,10 +141,10 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-basic-8") == 0) {
     return SgemmKernel::TiledBasic8;
   }
-  if (std::strcmp(name, "tiled-basic-16x16") == 0) {
+  if (std::strcmp(name, "tiled-basic-16") == 0) {
     return SgemmKernel::TiledBasic16;
   }
-  if (std::strcmp(name, "tiled-basic-32x32") == 0) {
+  if (std::strcmp(name, "tiled-basic-32") == 0) {
     return SgemmKernel::TiledBasic32;
   }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);

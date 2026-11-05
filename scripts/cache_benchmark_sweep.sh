@@ -5,57 +5,37 @@ root_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root_dir"
 
 target=${TARGET:-build/sgemm_bench}
-output=${1:-benchmarks/rtx3090-sm86.csv}
+output=${OUTPUT:-benchmarks/sweep.csv}
 peak_gflops=${PEAK_GFLOPS:-35580}
+fixed_iterations=${SWEEP_ITERS:-}
 
-kernels=(
-  naive-32x1
-  naive-32x2
-  naive-32x4
-  naive-32x8
-  naive-32x16
-  naive-32x32
-  naive-coarsened-64x64-2x2
-  naive-coarsened-64x64-2x4
-  naive-coarsened-64x64-4x2
-  naive-coarsened-64x64-4x4
-  naive-coarsened-64x64-4x8
-  naive-coarsened-64x64-8x4
-  naive-coarsened-64x64-8x8
-  tiled-basic
-  tiled-general-8x8x8
-  tiled-general-16x16x8
-  tiled-general-16x16x16
-  tiled-general-32x16x16
-  tiled-general-16x32x16
-  tiled-general-32x32x16
-  tiled-general-32x8x16
-  tiled-general-8x32x16
-  tiled-general-coarsened-32x32x8-2x2
-  tiled-general-coarsened-64x64x8-4x4
-  tiled-general-coarsened-64x64x16-4x4
-  tiled-general-coarsened-128x64x8-8x4
-)
-sizes=(${SIZES:-256 512 1024 2048 4096 8192})
+read -r -a kernels <<< "${KERNELS:-naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 tiled-basic-8 tiled-basic-16 tiled-basic-32}"
+read -r -a sizes <<< "${SIZES:-256 512 1024 2048 4096 8192}"
 
 if [[ ! -x "$target" ]]; then
-  make build
+  echo "error: benchmark executable not found: $target" >&2
+  exit 1
 fi
 
 mkdir -p "$(dirname "$output")"
 if [[ ! -f "$output" ]]; then
-  printf '%s\n' 'kernel,size,iterations,check,time_ms,gflops,peak_percent,measured_at_utc,source_commit' > "$output"
+  printf '%s\n' \
+    'kernel,size,iterations,check,time_ms,gflops,peak_percent,measured_at_utc,source_commit' \
+    > "$output"
 fi
 
 for kernel in "${kernels[@]}"; do
   for size in "${sizes[@]}"; do
     if awk -F, -v kernel="$kernel" -v size="$size" \
-      'NR > 1 && $1 == kernel && $2 == size { found = 1 } END { exit !found }' "$output"; then
+      'NR > 1 && $1 == kernel && $2 == size { found = 1 } END { exit !found }' \
+      "$output"; then
       echo "cached: $kernel at ${size}x${size}x${size}"
       continue
     fi
 
-    if (( size <= 1024 )); then
+    if [[ -n "$fixed_iterations" ]]; then
+      iterations=$fixed_iterations
+    elif (( size <= 1024 )); then
       iterations=100
     elif (( size <= 2048 )); then
       iterations=25
@@ -66,13 +46,15 @@ for kernel in "${kernels[@]}"; do
     fi
 
     echo "running: $kernel at ${size}x${size}x${size} ($iterations iterations)"
-    result=$("$target" --kernel "$kernel" --m "$size" --n "$size" --k "$size" --iters "$iterations")
+    result=$("$target" --kernel "$kernel" --m "$size" --n "$size" --k "$size" \
+      --iters "$iterations")
     printf '%s\n' "$result"
 
     check=$(awk '/^check:/ { print $2 }' <<< "$result")
     time_ms=$(awk '/^time:/ { print $2 }' <<< "$result")
     gflops=$(awk '/^perf:/ { print $2 }' <<< "$result")
-    peak_percent=$(awk -v perf="$gflops" -v peak="$peak_gflops" 'BEGIN { printf "%.2f", 100 * perf / peak }')
+    peak_percent=$(awk -v perf="$gflops" -v peak="$peak_gflops" \
+      'BEGIN { printf "%.2f", 100 * perf / peak }')
     measured_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     source_commit=$(git rev-parse --short HEAD 2>/dev/null || printf unknown)
 

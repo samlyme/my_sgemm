@@ -9,7 +9,11 @@ NVCCFLAGS ?= -O3 -DNDEBUG -std=c++17
 CPPFLAGS ?= -Iinclude
 ARGS ?=
 KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
-	tiled-basic-8x8 tiled-basic-16x16 tiled-basic-32x32
+	tiled-basic-8 tiled-basic-16 tiled-basic-32
+SIZES ?= 256 512 1024 2048 4096 8192
+SWEEP_OUTPUT ?= benchmarks/sweep.csv
+SWEEP_ITERS ?=
+PEAK_GFLOPS ?= 35580
 
 TARGET := $(BUILD_DIR)/sgemm_bench
 SOURCES := src/main.cu src/sgemm.cu
@@ -18,7 +22,7 @@ GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 
 .DEFAULT_GOAL := benchmark
 
-.PHONY: all build benchmark run clean rebuild
+.PHONY: all build benchmark sweep run clean rebuild
 
 all: benchmark
 
@@ -48,6 +52,15 @@ benchmark: build
 	printf '\n%-28s  %-6s  %12s  %14s\n' "Kernel" "Check" "Time (ms)" "GFLOP/s"; \
 	printf '%-28s  %-6s  %12s  %14s\n' "----------------------------" "------" "------------" "--------------"; \
 	awk -F '\t' '{ printf "%-28s  %-6s  %12.3f  %14.3f\n", $$1, $$2, $$3, $$4 }' "$$summary"
+
+sweep: build
+	@KERNELS='$(KERNELS)' \
+	SIZES='$(SIZES)' \
+	TARGET='$(TARGET)' \
+	OUTPUT='$(SWEEP_OUTPUT)' \
+	SWEEP_ITERS='$(SWEEP_ITERS)' \
+	PEAK_GFLOPS='$(PEAK_GFLOPS)' \
+	./scripts/cache_benchmark_sweep.sh
 
 run: benchmark
 

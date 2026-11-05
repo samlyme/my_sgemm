@@ -38,11 +38,9 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 # Build and run every kernel/configuration with M=N=K=1024
 make
 
-# Sweep one kernel over square problem sizes from 256 through 8192
-make sweep KERNEL=tiled-general-coarsened-64x64x8-4x4
-
-# Build and run the large M=N=K=8192 benchmark
-make large
+# Sweep every kernel over square problem sizes from 256 through 8192
+# Results are cached in benchmarks/sweep.csv
+make sweep
 
 ./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel col-strip --m 512 --n 768 --k 256 --iters 50
@@ -59,24 +57,16 @@ The program checks the selected kernel against a CPU reference, then reports ave
 
 The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
 
-The `sweep` target tests `M=N=K` at `256 512 1024 2048 4096 8192`, reducing the iteration count for larger problems. Override the peak throughput, sizes, or iteration count when needed:
+The `sweep` target tests every kernel at `M=N=K` sizes `256 512 1024 2048 4096 8192`. It reduces the iteration count for larger problems and caches each completed kernel/size pair, so interrupted sweeps can be resumed by running `make sweep` again.
+
+Override the sizes, fixed iteration count, output file, or peak throughput when needed:
 
 ```bash
-make sweep KERNEL=naive PEAK_GFLOPS=29770 \
-  SIZES="128 256 512" ARGS="--iters 10"
+make sweep SIZES="128 256 512" SWEEP_ITERS=10 \
+  SWEEP_OUTPUT=benchmarks/test-sweep.csv PEAK_GFLOPS=29770
 ```
 
-## Cached sweep
-
-A full, resumable sweep over all distinct kernel configurations can be cached as
-tracked CSV data:
-
-```bash
-scripts/cache_benchmark_sweep.sh
-```
-
-The checked-in RTX 3090 results and environment notes are under `benchmarks/`.
-Existing kernel/size pairs are skipped when the script is run again.
+Existing kernel/size pairs in the output CSV are skipped.
 
 ## Add a kernel
 
