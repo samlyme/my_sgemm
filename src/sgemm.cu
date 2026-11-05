@@ -20,6 +20,17 @@ __global__ void sgemm_naive(const int M, const int N, const int K,
   }
 }
 
+void launch_sgemm_naive(const int M, const int N, const int K,
+                        const float alpha, const float *A, const float *B,
+                        const float beta, float *C,
+                        const cudaStream_t stream) {
+  constexpr int block_size = 32;
+  const dim3 threads(block_size, block_size);
+  const dim3 blocks((N + block_size - 1) / block_size,
+                    (M + block_size - 1) / block_size);
+  sgemm_naive<<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+}
+
 template <int BK>
 __global__ void sgemm_tiled_basic_kernel(const int M, const int N, const int K,
                                          const float alpha, const float *A,
@@ -330,15 +341,9 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                   const float *B, const float beta, float *C,
                   const cudaStream_t stream) {
   switch (kernel) {
-  case SgemmKernel::Naive: {
-    constexpr int block_size = 32;
-    const dim3 blockDim(block_size, block_size);
-    const dim3 gridDim((N + block_size - 1) / block_size,
-                       (M + block_size - 1) / block_size);
-    sgemm_naive<<<gridDim, blockDim, 0, stream>>>(M, N, K, alpha, A, B, beta,
-                                                  C);
+  case SgemmKernel::Naive:
+    launch_sgemm_naive(M, N, K, alpha, A, B, beta, C, stream);
     break;
-  }
   case SgemmKernel::TiledBasic:
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C, stream);
     break;
