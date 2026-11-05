@@ -7,7 +7,7 @@ NVCC ?= $(if $(CUDA_NVCC),$(CUDA_NVCC),nvcc)
 ARCH ?= 86
 BUILD_DIR ?= build
 TARGET := $(BUILD_DIR)/sgemm_bench
-KERNELS := naive tiled-basic \
+KERNELS := row-strip col-strip naive tiled-basic \
 	tiled-general-8x8x8 \
 	tiled-general-16x16x8 \
 	tiled-general-16x16x16 \

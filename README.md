@@ -8,7 +8,7 @@ Matrices use row-major storage and the benchmark computes:
 C[M, N] = A[M, K] * B[K, N]
 ```
 
-The repository starts with a simple per-output-element kernel and a shared-memory tiled kernel. They are intentionally straightforward baselines to improve upon.
+The repository starts with three per-output-element kernels: horizontal row strips, vertical column strips, and conventional two-dimensional thread blocks. These expose coalescing and cache behavior before the shared-memory tiled kernels introduce explicit data reuse.
 
 ## Requirements
 
@@ -44,6 +44,8 @@ make sweep KERNEL=tiled-general-coarsened-64x64x8-4x4
 # Build and run the large M=N=K=8192 benchmark
 make large
 
+./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
+./build/sgemm_bench --kernel col-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
 ./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50

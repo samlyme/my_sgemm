@@ -5,6 +5,58 @@
 
 namespace {
 
+constexpr int strip_size = 256;
+
+// One-dimensional blocks cover horizontal strips of C. Consecutive threads
+// access consecutive B and C elements, while each A load is shared by a warp.
+__global__ void sgemm_row_strip(const int M, const int N, const int K,
+                                const float alpha, const float *A,
+                                const float *B, const float beta, float *C) {
+  const int y = blockIdx.y;
+  const int x = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (y < M && x < N) {
+    float sum = 0.0f;
+    for (int i = 0; i < K; ++i) {
+      sum += A[y * K + i] * B[i * N + x];
+    }
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
+  }
+}
+
+void launch_sgemm_row_strip(const int M, const int N, const int K,
+                            const float alpha, const float *A, const float *B,
+                            const float beta, float *C) {
+  const dim3 threads(strip_size);
+  const dim3 blocks((N + strip_size - 1) / strip_size, M);
+  sgemm_row_strip<<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
+}
+
+// Rotating the strip makes consecutive threads walk down a column. For
+// row-major matrices, the A and C accesses are consequently strided.
+__global__ void sgemm_col_strip(const int M, const int N, const int K,
+                                const float alpha, const float *A,
+                                const float *B, const float beta, float *C) {
+  const int y = blockIdx.y * blockDim.x + threadIdx.x;
+  const int x = blockIdx.x;
+
+  if (y < M && x < N) {
+    float sum = 0.0f;
+    for (int i = 0; i < K; ++i) {
+      sum += A[y * K + i] * B[i * N + x];
+    }
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
+  }
+}
+
+void launch_sgemm_col_strip(const int M, const int N, const int K,
+                            const float alpha, const float *A, const float *B,
+                            const float beta, float *C) {
+  const dim3 threads(strip_size);
+  const dim3 blocks(N, (M + strip_size - 1) / strip_size);
+  sgemm_col_strip<<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
+}
+
 __global__ void sgemm_naive(const int M, const int N, const int K,
                             const float alpha, const float *A, const float *B,
                             const float beta, float *C) {
@@ -260,6 +312,10 @@ void launch_sgemm_tiled_general_coarsened(
 
 const char *kernel_name(SgemmKernel kernel) {
   switch (kernel) {
+  case SgemmKernel::RowStrip:
+    return "row-strip";
+  case SgemmKernel::ColStrip:
+    return "col-strip";
   case SgemmKernel::Naive:
     return "naive";
   case SgemmKernel::TiledBasic:
@@ -291,6 +347,12 @@ const char *kernel_name(SgemmKernel kernel) {
 }
 
 SgemmKernel parse_kernel(const char *name) {
+  if (std::strcmp(name, "row-strip") == 0) {
+    return SgemmKernel::RowStrip;
+  }
+  if (std::strcmp(name, "col-strip") == 0) {
+    return SgemmKernel::ColStrip;
+  }
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
   }
@@ -337,6 +399,12 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                   const int K, const float alpha, const float *A,
                   const float *B, const float beta, float *C) {
   switch (kernel) {
+  case SgemmKernel::RowStrip:
+    launch_sgemm_row_strip(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::ColStrip:
+    launch_sgemm_col_strip(M, N, K, alpha, A, B, beta, C);
+    break;
   case SgemmKernel::Naive:
     launch_sgemm_naive(M, N, K, alpha, A, B, beta, C);
     break;

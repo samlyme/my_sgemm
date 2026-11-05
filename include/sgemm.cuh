@@ -6,6 +6,8 @@
 //   A is M x K, B is K x N, and C is M x N.
 // Computes C = alpha * A * B + beta * C.
 enum class SgemmKernel {
+  RowStrip,
+  ColStrip,
   Naive,
   TiledBasic,
   TiledGeneral,
