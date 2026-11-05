@@ -1,9 +1,46 @@
 #include "sgemm.cuh"
 
+#include <cublas_v2.h>
+
 #include <cstring>
 #include <stdexcept>
 
 namespace {
+void check_cublas(const cublasStatus_t status, const char *call) {
+  if (status != CUBLAS_STATUS_SUCCESS) {
+    throw std::runtime_error(std::string(call) + " failed with cuBLAS status " +
+                             std::to_string(static_cast<int>(status)));
+  }
+}
+
+class CublasContext {
+public:
+  CublasContext() {
+    check_cublas(cublasCreate(&handle_), "cublasCreate");
+    check_cublas(cublasSetMathMode(handle_, CUBLAS_PEDANTIC_MATH),
+                 "cublasSetMathMode");
+  }
+
+  ~CublasContext() { cublasDestroy(handle_); }
+
+  cublasHandle_t handle() const { return handle_; }
+
+private:
+  cublasHandle_t handle_ = nullptr;
+};
+
+void launch_sgemm_cublas(const int M, const int N, const int K,
+                         const float alpha, const float *A, const float *B,
+                         const float beta, float *C) {
+  static CublasContext context;
+
+  // cuBLAS is column-major. Interpreting the row-major inputs as transposed
+  // column-major matrices computes C^T = B^T A^T without moving data.
+  check_cublas(cublasSgemm(context.handle(), CUBLAS_OP_N, CUBLAS_OP_N, N, M, K,
+                           &alpha, B, N, A, K, &beta, C, N),
+               "cublasSgemm");
+}
+
 __global__ void sgemm_naive(const int M, const int N, const int K,
                             const float alpha, const float *A, const float *B,
                             const float beta, float *C) {
@@ -276,6 +313,8 @@ void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
 
 const char *kernel_name(SgemmKernel kernel) {
   switch (kernel) {
+  case SgemmKernel::CuBLAS:
+    return "cublas";
   case SgemmKernel::Naive:
     return "naive";
   case SgemmKernel::Naive8x8:
@@ -365,6 +404,9 @@ const char *kernel_name(SgemmKernel kernel) {
 }
 
 SgemmKernel parse_kernel(const char *name) {
+  if (std::strcmp(name, "cublas") == 0) {
+    return SgemmKernel::CuBLAS;
+  }
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
   }
@@ -498,6 +540,9 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                   const int K, const float alpha, const float *A,
                   const float *B, const float beta, float *C) {
   switch (kernel) {
+  case SgemmKernel::CuBLAS:
+    launch_sgemm_cublas(M, N, K, alpha, A, B, beta, C);
+    break;
   case SgemmKernel::Naive8x8:
     launch_sgemm_naive<8, 8>(M, N, K, alpha, A, B, beta, C);
     break;

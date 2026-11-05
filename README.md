@@ -42,6 +42,7 @@ make
 # Results are cached in benchmarks/sweep.csv
 make sweep
 
+./build/sgemm_bench --kernel cublas --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel col-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
@@ -54,7 +55,7 @@ make sweep
 ./build/sgemm_bench --help
 ```
 
-The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The naive kernel is available with `32x1`, `32x2`, `32x4`, `32x8`, `32x16`, and `32x32` thread blocks; plain `naive` aliases `naive-32x32`. Keeping 32 threads in the x dimension preserves one horizontal output row per warp while varying the number of warps per block. The `naive-coarsened-64x64-TMxTN` variants keep a 64x64 output tile while varying each thread's register tile; plain `naive-coarsened` aliases the `4x4` variant. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
+The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The `cublas` kernel uses `cublasSgemm` in pedantic math mode as an FP32 performance reference. The naive kernel is available with `32x1`, `32x2`, `32x4`, `32x8`, `32x16`, and `32x32` thread blocks; plain `naive` aliases `naive-32x32`. Keeping 32 threads in the x dimension preserves one horizontal output row per warp while varying the number of warps per block. The `naive-coarsened-64x64-TMxTN` variants keep a 64x64 output tile while varying each thread's register tile; plain `naive-coarsened` aliases the `4x4` variant. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
 The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
 

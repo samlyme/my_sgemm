@@ -7,8 +7,11 @@ ARCH ?= 86
 BUILD_DIR ?= build
 NVCCFLAGS ?= -O3 -DNDEBUG -std=c++17
 CPPFLAGS ?= -Iinclude
+CUDA_LIB_DIR := $(abspath $(dir $(shell readlink -f $(NVCC)))/../lib64)
+LDFLAGS ?= -Xlinker -rpath -Xlinker $(CUDA_LIB_DIR)
+LDLIBS ?= -lcublas
 ARGS ?=
-KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
+KERNELS ?= cublas naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
 	tiled-basic-8 tiled-basic-16 tiled-basic-32 \
 	tiled-general-16x16x32 tiled-general-16x16x64 \
 	tiled-general-16x16x128 tiled-general-16x16x256 \
@@ -56,7 +59,7 @@ build: $(TARGET)
 
 $(TARGET): $(SOURCES) $(HEADERS)
 	mkdir -p $(BUILD_DIR)
-	$(NVCC) $(CPPFLAGS) $(NVCCFLAGS) $(GENCODE) $(SOURCES) -o $@
+	$(NVCC) $(CPPFLAGS) $(NVCCFLAGS) $(GENCODE) $(SOURCES) $(LDFLAGS) $(LDLIBS) -o $@
 
 benchmark: build
 	@set -e; \

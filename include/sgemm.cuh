@@ -6,6 +6,7 @@
 //   A is M x K, B is K x N, and C is M x N.
 // Computes C = alpha * A * B + beta * C.
 enum class SgemmKernel {
+  CuBLAS,
   Naive,
   Naive8x8,
   Naive16x16,
