@@ -9,6 +9,7 @@ enum class SgemmKernel {
   RowStrip,
   ColStrip,
   Naive,
+  NaiveCoarsened,
   TiledBasic,
   TiledGeneral,
   TiledGeneral8x8x8,

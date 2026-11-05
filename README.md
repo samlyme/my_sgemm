@@ -8,7 +8,7 @@ Matrices use row-major storage and the benchmark computes:
 C[M, N] = A[M, K] * B[K, N]
 ```
 
-The repository starts with three per-output-element kernels: horizontal row strips, vertical column strips, and conventional two-dimensional thread blocks. These expose coalescing and cache behavior before the shared-memory tiled kernels introduce explicit data reuse.
+The repository starts with horizontal row strips, vertical column strips, conventional two-dimensional thread blocks, and a register-coarsened naive kernel. These expose coalescing, cache behavior, and intra-thread reuse before the shared-memory tiled kernels introduce explicit inter-thread reuse.
 
 ## Requirements
 
@@ -47,6 +47,7 @@ make large
 ./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel col-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
+./build/sgemm_bench --kernel naive-coarsened --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
 ./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50
 ./build/sgemm_bench --help

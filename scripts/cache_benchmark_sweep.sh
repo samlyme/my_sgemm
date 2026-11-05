@@ -10,6 +10,7 @@ peak_gflops=${PEAK_GFLOPS:-35580}
 
 kernels=(
   naive
+  naive-coarsened
   tiled-basic
   tiled-general-8x8x8
   tiled-general-16x16x8

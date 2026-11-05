@@ -36,7 +36,8 @@ void print_usage(const char* program) {
   std::cout
       << "Usage: " << program
       << " [--kernel NAME] [--m M] [--n N] [--k K] [--iters N]\n"
-      << "Kernels: row-strip, col-strip, naive, tiled-basic, tiled-general,\n"
+      << "Kernels: row-strip, col-strip, naive, naive-coarsened, tiled-basic,\n"
+      << "  tiled-general,\n"
       << "  tiled-general-BMxBNxBK, tiled-general-coarsened,\n"
       << "  tiled-general-coarsened-BMxBNxBK-TMxTN\n"
       << "Tiled-general configurations: 8x8x8, 16x16x8, 16x16x16,"

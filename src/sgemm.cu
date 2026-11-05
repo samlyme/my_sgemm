@@ -82,6 +82,73 @@ void launch_sgemm_naive(const int M, const int N, const int K,
   sgemm_naive<<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 
+// Each thread computes a TM x TN register tile directly from global memory.
+// The spacing by blockDim preserves coalescing for each B load and C store.
+template <int BM, int BN, int TM, int TN>
+__global__ void sgemm_naive_coarsened_kernel(
+    const int M, const int N, const int K, const float alpha, const float *A,
+    const float *B, const float beta, float *C) {
+  const int y = blockIdx.y * BM + threadIdx.y;
+  const int x = blockIdx.x * BN + threadIdx.x;
+
+  float sums[TM][TN] = {};
+
+  for (int k = 0; k < K; ++k) {
+    float a_values[TM];
+    float b_values[TN];
+
+#pragma unroll
+    for (int tm = 0; tm < TM; ++tm) {
+      const int output_y = y + tm * blockDim.y;
+      a_values[tm] = output_y < M ? A[output_y * K + k] : 0.0f;
+    }
+
+#pragma unroll
+    for (int tn = 0; tn < TN; ++tn) {
+      const int output_x = x + tn * blockDim.x;
+      b_values[tn] = output_x < N ? B[k * N + output_x] : 0.0f;
+    }
+
+#pragma unroll
+    for (int tm = 0; tm < TM; ++tm) {
+#pragma unroll
+      for (int tn = 0; tn < TN; ++tn) {
+        sums[tm][tn] += a_values[tm] * b_values[tn];
+      }
+    }
+  }
+
+#pragma unroll
+  for (int tm = 0; tm < TM; ++tm) {
+    const int output_y = y + tm * blockDim.y;
+#pragma unroll
+    for (int tn = 0; tn < TN; ++tn) {
+      const int output_x = x + tn * blockDim.x;
+      if (output_y < M && output_x < N) {
+        const int output = output_y * N + output_x;
+        C[output] = alpha * sums[tm][tn] + beta * C[output];
+      }
+    }
+  }
+}
+
+template <int BM, int BN, int TM, int TN>
+void launch_sgemm_naive_coarsened(const int M, const int N, const int K,
+                                  const float alpha, const float *A,
+                                  const float *B, const float beta, float *C) {
+  static_assert(BM > 0 && BN > 0 && TM > 0 && TN > 0,
+                "tile dimensions must be positive");
+  static_assert(BM % TM == 0 && BN % TN == 0,
+                "thread tiles must evenly divide the block tile");
+  static_assert((BM / TM) * (BN / TN) <= 1024,
+                "tile dimensions must produce a valid CUDA thread block");
+
+  const dim3 threads(BN / TN, BM / TM);
+  const dim3 blocks((N + BN - 1) / BN, (M + BM - 1) / BM);
+  sgemm_naive_coarsened_kernel<BM, BN, TM, TN>
+      <<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
+}
+
 template <int BK>
 __global__ void sgemm_tiled_basic_kernel(const int M, const int N, const int K,
                                          const float alpha, const float *A,
@@ -318,6 +385,8 @@ const char *kernel_name(SgemmKernel kernel) {
     return "col-strip";
   case SgemmKernel::Naive:
     return "naive";
+  case SgemmKernel::NaiveCoarsened:
+    return "naive-coarsened";
   case SgemmKernel::TiledBasic:
     return "tiled-basic";
   case SgemmKernel::TiledGeneral:
@@ -355,6 +424,9 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
+  }
+  if (std::strcmp(name, "naive-coarsened") == 0) {
+    return SgemmKernel::NaiveCoarsened;
   }
   if (std::strcmp(name, "tiled-basic") == 0) {
     return SgemmKernel::TiledBasic;
@@ -407,6 +479,9 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     break;
   case SgemmKernel::Naive:
     launch_sgemm_naive(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened:
+    launch_sgemm_naive_coarsened<64, 64, 4, 4>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic:
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);
