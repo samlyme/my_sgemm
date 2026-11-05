@@ -36,7 +36,7 @@ for kernel in "${kernels[@]}"; do
     if [[ -n "$fixed_iterations" ]]; then
       iterations=$fixed_iterations
     elif (( size <= 1024 )); then
-      iterations=200
+      iterations=100
     elif (( size <= 2048 )); then
       iterations=50
     elif (( size <= 4096 )); then
