@@ -105,6 +105,12 @@ const char *kernel_name(SgemmKernel kernel) {
     return "naive-16x64";
   case SgemmKernel::TiledBasic:
     return "tiled-basic";
+  case SgemmKernel::TiledBasic8x8:
+    return "tiled-basic-8x8";
+  case SgemmKernel::TiledBasic16x16:
+    return "tiled-basic-16x16";
+  case SgemmKernel::TiledBasic32x32:
+    return "tiled-basic-32x32";
   }
   return "unknown";
 }
@@ -128,6 +134,15 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-basic") == 0) {
     return SgemmKernel::TiledBasic;
   }
+  if (std::strcmp(name, "tiled-basic-8x8") == 0) {
+    return SgemmKernel::TiledBasic8x8;
+  }
+  if (std::strcmp(name, "tiled-basic-16x16") == 0) {
+    return SgemmKernel::TiledBasic16x16;
+  }
+  if (std::strcmp(name, "tiled-basic-32x32") == 0) {
+    return SgemmKernel::TiledBasic32x32;
+  }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
 }
 
@@ -150,7 +165,14 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
   case SgemmKernel::Naive16x64:
     launch_sgemm_naive<16, 64>(M, N, K, alpha, A, B, beta, C);
     break;
+  case SgemmKernel::TiledBasic8x8:
+    launch_sgemm_smem_cache<8>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledBasic16x16:
+    launch_sgemm_smem_cache<16>(M, N, K, alpha, A, B, beta, C);
+    break;
   case SgemmKernel::TiledBasic:
+  case SgemmKernel::TiledBasic32x32:
     launch_sgemm_smem_cache<32>(M, N, K, alpha, A, B, beta, C);
     break;
   }

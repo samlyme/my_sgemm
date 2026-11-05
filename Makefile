@@ -8,7 +8,8 @@ BUILD_DIR ?= build
 NVCCFLAGS ?= -O3 -DNDEBUG -std=c++17
 CPPFLAGS ?= -Iinclude
 ARGS ?=
-KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 tiled-basic
+KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
+	tiled-basic-8x8 tiled-basic-16x16 tiled-basic-32x32
 
 TARGET := $(BUILD_DIR)/sgemm_bench
 SOURCES := src/main.cu src/sgemm.cu
