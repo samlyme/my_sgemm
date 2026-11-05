@@ -22,13 +22,12 @@ __global__ void sgemm_naive(const int M, const int N, const int K,
 
 void launch_sgemm_naive(const int M, const int N, const int K,
                         const float alpha, const float *A, const float *B,
-                        const float beta, float *C,
-                        const cudaStream_t stream) {
+                        const float beta, float *C) {
   constexpr int block_size = 32;
   const dim3 threads(block_size, block_size);
   const dim3 blocks((N + block_size - 1) / block_size,
                     (M + block_size - 1) / block_size);
-  sgemm_naive<<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+  sgemm_naive<<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 
 template <int BK>
@@ -85,15 +84,14 @@ __global__ void sgemm_tiled_basic_kernel(const int M, const int N, const int K,
 template <int BK>
 void launch_sgemm_tiled_basic(const int M, const int N, const int K,
                               const float alpha, const float *A, const float *B,
-                              const float beta, float *C,
-                              const cudaStream_t stream) {
+                              const float beta, float *C) {
   static_assert(BK > 0 && BK * BK <= 1024,
                 "BK must produce a valid CUDA thread block");
 
   const dim3 threads(BK, BK);
   const dim3 blocks((N + BK - 1) / BK, (M + BK - 1) / BK);
   sgemm_tiled_basic_kernel<BK>
-      <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+      <<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 
 // Trying to increase AI, doesn't really help!
@@ -160,15 +158,14 @@ __global__ void sgemm_tiled_general_kernel(const int M, const int N,
 template <int BM, int BN, int BK>
 void launch_sgemm_tiled_general(const int M, const int N, const int K,
                                 const float alpha, const float *A,
-                                const float *B, const float beta, float *C,
-                                const cudaStream_t stream) {
+                                const float *B, const float beta, float *C) {
   static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
                 "tile dimensions must produce a valid CUDA thread block");
 
   const dim3 threads(BN, BM);
   const dim3 blocks((N + BN - 1) / BN, (M + BM - 1) / BM);
   sgemm_tiled_general_kernel<BM, BN, BK>
-      <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+      <<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 
 // AI successfully increased, but now facing L1 Cache pressure.
@@ -246,7 +243,7 @@ __global__ void sgemm_tiled_general_coarsened_kernel(
 template <int BM, int BN, int BK, int TM, int TN>
 void launch_sgemm_tiled_general_coarsened(
     const int M, const int N, const int K, const float alpha, const float *A,
-    const float *B, const float beta, float *C, const cudaStream_t stream) {
+    const float *B, const float beta, float *C) {
   static_assert(BM > 0 && BN > 0 && BK > 0 && TM > 0 && TN > 0,
                 "tile dimensions must be positive");
   static_assert(BM % TM == 0 && BN % TN == 0,
@@ -257,7 +254,7 @@ void launch_sgemm_tiled_general_coarsened(
   const dim3 threads(BN / TN, BM / TM);
   const dim3 blocks((N + BN - 1) / BN, (M + BM - 1) / BM);
   sgemm_tiled_general_coarsened_kernel<BM, BN, BK, TM, TN>
-      <<<blocks, threads, 0, stream>>>(M, N, K, alpha, A, B, beta, C);
+      <<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
 
@@ -338,51 +335,46 @@ SgemmKernel parse_kernel(const char *name) {
 
 void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                   const int K, const float alpha, const float *A,
-                  const float *B, const float beta, float *C,
-                  const cudaStream_t stream) {
+                  const float *B, const float beta, float *C) {
   switch (kernel) {
   case SgemmKernel::Naive:
-    launch_sgemm_naive(M, N, K, alpha, A, B, beta, C, stream);
+    launch_sgemm_naive(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic:
-    launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C, stream);
+    launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral:
   case SgemmKernel::TiledGeneral16x16x16:
-    launch_sgemm_tiled_general<16, 16, 16>(M, N, K, alpha, A, B, beta, C,
-                                           stream);
+    launch_sgemm_tiled_general<16, 16, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral8x8x8:
-    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C, stream);
+    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral16x16x8:
-    launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C,
-                                          stream);
+    launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral32x8x16:
-    launch_sgemm_tiled_general<32, 8, 16>(M, N, K, alpha, A, B, beta, C,
-                                          stream);
+    launch_sgemm_tiled_general<32, 8, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral8x32x16:
-    launch_sgemm_tiled_general<8, 32, 16>(M, N, K, alpha, A, B, beta, C,
-                                          stream);
+    launch_sgemm_tiled_general<8, 32, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened:
   case SgemmKernel::TiledGeneralCoarsened64x64x8x4x4:
     launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 4>(
-        M, N, K, alpha, A, B, beta, C, stream);
+        M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened32x32x8x2x2:
     launch_sgemm_tiled_general_coarsened<32, 32, 8, 2, 2>(
-        M, N, K, alpha, A, B, beta, C, stream);
+        M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16x4x4:
     launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 4>(
-        M, N, K, alpha, A, B, beta, C, stream);
+        M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x64x8x8x4:
     launch_sgemm_tiled_general_coarsened<128, 64, 8, 8, 4>(
-        M, N, K, alpha, A, B, beta, C, stream);
+        M, N, K, alpha, A, B, beta, C);
     break;
   }
 }

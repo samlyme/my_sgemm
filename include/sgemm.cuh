@@ -26,5 +26,4 @@ SgemmKernel parse_kernel(const char *name);
 
 void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
                   const int K, const float alpha, const float *A,
-                  const float *B, const float beta, float *C,
-                  const cudaStream_t stream = nullptr);
+                  const float *B, const float beta, float *C);
