@@ -217,10 +217,19 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
     __syncthreads();
 
     for (int i = 0; i < BK; i++) {
+      float a[TM];
+      float b[TN];
+
       for (int ty = 0; ty < TM; ty++) {
-        const float a = As[(yt * TM + ty) * BK + i];
+        a[ty] = As[(yt * TM + ty) * BK + i];
+      }
+      for (int tx = 0; tx < TN; tx++) {
+        b[tx] = Bs[i * BN + xt * TN + tx];
+      }
+
+      for (int ty = 0; ty < TM; ty++) {
         for (int tx = 0; tx < TN; tx++) {
-          sums[ty][tx] += a * Bs[i * BN + xt * TN + tx];
+          sums[ty][tx] += a[ty] * b[tx];
         }
       }
     }
