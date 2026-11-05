@@ -38,9 +38,12 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 # Build and run every kernel/configuration with M=N=K=1024
 make
 
-# Sweep every kernel over square problem sizes from 256 through 8192
-# Results are cached in benchmarks/sweep.csv
+# Run the full family-aware sweep and generate latency/throughput plots
+make suite
+
+# Run only the benchmarks or regenerate plots from cached results
 make sweep
+make plots
 
 ./build/sgemm_bench --kernel cublas --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
@@ -59,16 +62,27 @@ The program checks the selected kernel against a CPU reference, then reports ave
 
 The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
 
-The `sweep` target tests every kernel at `M=N=K` sizes `256 512 1024 2048 4096 8192`. It reduces the iteration count for larger problems and caches each completed kernel/size pair, so interrupted sweeps can be resumed by running `make sweep` again.
+The `sweep` target tests every kernel at `M=N=K` sizes `256 512 1024 2048 4096 8192`. Naive kernels use fewer iterations because they become expensive quickly; cuBLAS and all tiled families use substantially more iterations for stable timings. Cached rows are reused only when the kernel, size, and requested iteration count all match, so changing the iteration policy automatically refreshes the affected measurements.
 
-Override the sizes, fixed iteration count, output file, or peak throughput when needed:
+The default iteration counts by size are:
+
+| Family | 256 | 512 | 1024 | 2048 | 4096 | 8192 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Naive | 100 | 50 | 20 | 10 | 3 | 1 |
+| Tiled and cuBLAS | 1000 | 500 | 250 | 100 | 30 | 10 |
+
+`make plots` uses `uv` and Matplotlib to select the fastest configuration in each family at every size. It writes throughput and latency plots in PNG and SVG formats, plus the selected rows in `benchmarks/plots/best_by_family.csv`.
+
+Override sizes, iteration counts, output files, or peak throughput when needed:
 
 ```bash
-make sweep SIZES="128 256 512" SWEEP_ITERS=10 \
+make sweep SIZES="128 256 512" TILED_SWEEP_ITERS=200 \
+  NAIVE_SWEEP_ITERS=20 CUBLAS_SWEEP_ITERS=500 \
   SWEEP_OUTPUT=benchmarks/test-sweep.csv PEAK_GFLOPS=29770
-```
 
-Existing kernel/size pairs in the output CSV are skipped.
+# SWEEP_ITERS overrides every family with one fixed count.
+make sweep SWEEP_ITERS=10
+```
 
 ## Add a kernel
 

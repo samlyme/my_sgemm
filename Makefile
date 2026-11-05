@@ -42,6 +42,10 @@ KERNELS ?= cublas naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
 SIZES ?= 256 512 1024 2048 4096 8192
 SWEEP_OUTPUT ?= benchmarks/sweep.csv
 SWEEP_ITERS ?=
+NAIVE_SWEEP_ITERS ?=
+TILED_SWEEP_ITERS ?=
+CUBLAS_SWEEP_ITERS ?=
+PLOT_OUTPUT_DIR ?= benchmarks/plots
 PEAK_GFLOPS ?= 35580
 
 TARGET := $(BUILD_DIR)/sgemm_bench
@@ -51,7 +55,7 @@ GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 
 .DEFAULT_GOAL := benchmark
 
-.PHONY: all build benchmark sweep run clean rebuild
+.PHONY: all build benchmark sweep plots suite run clean rebuild
 
 all: benchmark
 
@@ -88,8 +92,18 @@ sweep: build
 	TARGET='$(TARGET)' \
 	OUTPUT='$(SWEEP_OUTPUT)' \
 	SWEEP_ITERS='$(SWEEP_ITERS)' \
+	NAIVE_SWEEP_ITERS='$(NAIVE_SWEEP_ITERS)' \
+	TILED_SWEEP_ITERS='$(TILED_SWEEP_ITERS)' \
+	CUBLAS_SWEEP_ITERS='$(CUBLAS_SWEEP_ITERS)' \
 	PEAK_GFLOPS='$(PEAK_GFLOPS)' \
 	./scripts/cache_benchmark_sweep.sh
+
+plots:
+	uv run scripts/plot_benchmark_sweep.py \
+		--input '$(abspath $(SWEEP_OUTPUT))' \
+		--output-dir '$(abspath $(PLOT_OUTPUT_DIR))'
+
+suite: sweep plots
 
 run: benchmark
 
