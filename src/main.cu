@@ -37,7 +37,7 @@ void print_usage(const char* program) {
       << "Usage: " << program
       << " [--kernel NAME] [--m M] [--n N] [--k K] [--iters N]\n"
       << "Kernels: naive-8x8, naive-16x16, naive-32x32,\n"
-      << "  naive-64x16, naive-16x64\n";
+      << "  naive-64x16, naive-16x64, tiled-basic\n";
 }
 
 int positive_int(const char* value, const char* option) {

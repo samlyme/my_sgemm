@@ -10,8 +10,8 @@ enum class SgemmKernel {
   Naive16x16,
   Naive32x32,
   Naive64x16,
-  Naive16x64
-  // TiledBasic,
+  Naive16x64,
+  TiledBasic
   // TiledGeneral,
   // TiledGeneralCoarsened,
 };
