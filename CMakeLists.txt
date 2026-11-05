@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(my_sgemm LANGUAGES CXX CUDA)
-
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES 86)
 endif()
+
+project(my_sgemm LANGUAGES CXX CUDA)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
