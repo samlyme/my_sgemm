@@ -61,6 +61,18 @@ make sweep KERNEL=naive PEAK_GFLOPS=29770 \
   SIZES="128 256 512" ARGS="--iters 10"
 ```
 
+## Cached sweep
+
+A full, resumable sweep over all distinct kernel configurations can be cached as
+tracked CSV data:
+
+```bash
+scripts/cache_benchmark_sweep.sh
+```
+
+The checked-in RTX 3090 results and environment notes are under `benchmarks/`.
+Existing kernel/size pairs are skipped when the script is run again.
+
 ## Add a kernel
 
 1. Add an entry to `SgemmKernel` in `include/sgemm.cuh`.
