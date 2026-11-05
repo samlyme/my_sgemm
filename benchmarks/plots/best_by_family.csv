@@ -1,0 +1,31 @@
+family,size,kernel,iterations,time_ms,gflops
+cuBLAS,256,cublas,1000,0.007000,4529.721
+cuBLAS,512,cublas,500,0.022000,12242.854
+cuBLAS,1024,cublas,250,0.106000,20217.022
+cuBLAS,2048,cublas,100,0.728000,23612.920
+cuBLAS,4096,cublas,30,5.367000,25606.414
+cuBLAS,8192,cublas,10,40.779000,26962.720
+Naive,256,naive-16x64,100,0.019000,1775.773
+Naive,512,naive-16x16,50,0.117000,2284.678
+Naive,1024,naive-16x16,20,0.873000,2460.715
+Naive,2048,naive-16x64,10,6.922000,2481.763
+Naive,4096,naive-16x64,3,55.714000,2466.869
+Naive,8192,naive-16x64,1,447.008000,2459.715
+Basic tiled,256,tiled-basic-32,1000,0.015000,2166.909
+Basic tiled,512,tiled-basic-16,500,0.091000,2946.100
+Basic tiled,1024,tiled-basic-16,250,0.669000,3208.028
+Basic tiled,2048,tiled-basic-16,100,5.302000,3240.384
+Basic tiled,4096,tiled-basic-16,30,42.453000,3237.439
+Basic tiled,8192,tiled-basic-16,10,342.678000,3208.584
+General tiled,256,tiled-general-32x32x128,1000,0.015000,2226.389
+General tiled,512,tiled-general-16x16x128,500,0.088000,3060.499
+General tiled,1024,tiled-general-16x16x128,250,0.654000,3281.250
+General tiled,2048,tiled-general-16x16x128,100,5.298000,3242.801
+General tiled,4096,tiled-general-16x16x128,30,42.021000,3270.710
+General tiled,8192,tiled-general-16x16x64,10,335.477000,3277.462
+Coarsened tiled,256,tiled-general-coarsened-64x64x32-4x4,1000,0.020000,1679.721
+Coarsened tiled,512,tiled-general-coarsened-64x64x32-4x4,500,0.038000,7024.505
+Coarsened tiled,1024,tiled-general-coarsened-64x64x32-8x4,250,0.194000,11085.015
+Coarsened tiled,2048,tiled-general-coarsened-64x64x32-8x4,100,1.260000,13631.479
+Coarsened tiled,4096,tiled-general-coarsened-64x64x32-8x4,30,9.908000,13871.439
+Coarsened tiled,8192,tiled-general-coarsened-64x64x32-8x4,10,77.594000,14170.076
