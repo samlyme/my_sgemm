@@ -253,8 +253,7 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
     }
   }
 }
-template <int BM, int BN, int BK, int TM, int TN,
-          bool CacheOperands = false>
+template <int BM, int BN, int BK, int TM, int TN, bool CacheOperands = false>
 void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
                                           const float alpha, const float *A,
                                           const float *B, const float beta,
@@ -489,8 +488,7 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general-coarsened-register") == 0) {
     return SgemmKernel::TiledGeneralCoarsenedRegister;
   }
-  if (std::strcmp(name,
-                  "tiled-general-coarsened-register-64x64x32-8x4") == 0) {
+  if (std::strcmp(name, "tiled-general-coarsened-register-64x64x32-8x4") == 0) {
     return SgemmKernel::TiledGeneralCoarsenedRegister64x64x32_8x4;
   }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
@@ -549,94 +547,94 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_general<32, 32, 128>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x8_2x2:
-    launch_sgemm_tiled_general_coarsened<64, 64, 8, 2, 2>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 2, 2>(M, N, K, alpha, A, B,
+                                                          beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened:
   case SgemmKernel::TiledGeneralCoarsened64x64x8_4x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 4>(M, N, K, alpha, A, B,
+                                                          beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x8_4x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 8>(M, N, K, alpha, A, B,
+                                                          beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x8_8x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 4>(M, N, K, alpha, A, B,
+                                                          beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x8_8x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 8>(M, N, K, alpha, A, B,
+                                                          beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_4x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 4>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_4x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_8x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 16, 8, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 8, 4>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_8x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 16, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 8, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x32_4x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 4, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 4, 4>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x32_4x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 4, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 4, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x32_8x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 4>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x32_8x8:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x64x8_8x4:
-    launch_sgemm_tiled_general_coarsened<128, 64, 8, 8, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<128, 64, 8, 8, 4>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x64x8_8x8:
-    launch_sgemm_tiled_general_coarsened<128, 64, 8, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<128, 64, 8, 8, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x64x16_8x4:
-    launch_sgemm_tiled_general_coarsened<128, 64, 16, 8, 4>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<128, 64, 16, 8, 4>(M, N, K, alpha, A,
+                                                            B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x64x16_8x8:
-    launch_sgemm_tiled_general_coarsened<128, 64, 16, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<128, 64, 16, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x128x8_4x8:
-    launch_sgemm_tiled_general_coarsened<64, 128, 8, 4, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 128, 8, 4, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x128x8_8x8:
-    launch_sgemm_tiled_general_coarsened<64, 128, 8, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 128, 8, 8, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x128x16_4x8:
-    launch_sgemm_tiled_general_coarsened<64, 128, 16, 4, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 128, 16, 4, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
-    launch_sgemm_tiled_general_coarsened<64, 128, 16, 8, 8>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 128, 16, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsenedRegister:
   case SgemmKernel::TiledGeneralCoarsenedRegister64x64x32_8x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 4, true>(
-        M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 4, true>(M, N, K, alpha,
+                                                                 A, B, beta, C);
     break;
   }
 }
