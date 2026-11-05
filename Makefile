@@ -9,7 +9,10 @@ NVCCFLAGS ?= -O3 -DNDEBUG -std=c++17
 CPPFLAGS ?= -Iinclude
 ARGS ?=
 KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
-	tiled-basic-8 tiled-basic-16 tiled-basic-32 tiled-general-32x8x16
+	tiled-basic-8 tiled-basic-16 tiled-basic-32 \
+	tiled-general-8x8x8 tiled-general-16x16x8 \
+	tiled-general-16x16x16 tiled-general-32x8x16 \
+	tiled-general-8x32x16
 SIZES ?= 256 512 1024 2048 4096 8192
 SWEEP_OUTPUT ?= benchmarks/sweep.csv
 SWEEP_ITERS ?=
