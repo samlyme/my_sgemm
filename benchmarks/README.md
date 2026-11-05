@@ -4,6 +4,13 @@
 configurations at square sizes 256, 512, 1024, 2048, 4096, and 8192. Every
 correctness check passed.
 
+Detailed presentation-oriented profiles:
+
+- [`pre-tiled-profile-rtx3090.md`](pre-tiled-profile-rtx3090.md): row strips,
+  column strips, coalescing, and implicit cache reuse
+- [`basic-tiled-profile-rtx3090.md`](basic-tiled-profile-rtx3090.md): explicit
+  shared-memory reuse and the generalized tile design space
+
 Measurement environment:
 
 - GPU: NVIDIA GeForce RTX 3090 (SM 8.6, 24 GiB)
