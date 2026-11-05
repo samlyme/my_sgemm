@@ -15,8 +15,9 @@ enum class SgemmKernel {
   TiledBasic,
   TiledBasic8,
   TiledBasic16,
-  TiledBasic32
-  // TiledGeneral,
+  TiledBasic32,
+  TiledGeneral,
+  TiledGeneral32x8x16
   // TiledGeneralCoarsened,
 };
 
