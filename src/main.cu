@@ -39,9 +39,9 @@ void print_usage(const char* program) {
       << "Kernels: naive-8x8, naive-16x16, naive-32x32,\n"
       << "  naive-64x16, naive-16x64, tiled-basic,\n"
       << "  tiled-basic-8, tiled-basic-16, tiled-basic-32,\n"
-      << "  tiled-general, tiled-general-8x8x8, tiled-general-16x16x8,\n"
-      << "  tiled-general-16x16x16, tiled-general-32x8x16,\n"
-      << "  tiled-general-8x32x16\n";
+      << "  tiled-general, tiled-general-32x8x16,\n"
+      << "  tiled-general-32x32x64, tiled-general-32x32x96,\n"
+      << "  tiled-general-32x32x128\n";
 }
 
 int positive_int(const char* value, const char* option) {

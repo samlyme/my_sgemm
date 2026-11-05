@@ -188,16 +188,14 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-basic-32";
   case SgemmKernel::TiledGeneral:
     return "tiled-general";
-  case SgemmKernel::TiledGeneral8x8x8:
-    return "tiled-general-8x8x8";
-  case SgemmKernel::TiledGeneral16x16x8:
-    return "tiled-general-16x16x8";
-  case SgemmKernel::TiledGeneral16x16x16:
-    return "tiled-general-16x16x16";
   case SgemmKernel::TiledGeneral32x8x16:
     return "tiled-general-32x8x16";
-  case SgemmKernel::TiledGeneral8x32x16:
-    return "tiled-general-8x32x16";
+  case SgemmKernel::TiledGeneral32x32x64:
+    return "tiled-general-32x32x64";
+  case SgemmKernel::TiledGeneral32x32x96:
+    return "tiled-general-32x32x96";
+  case SgemmKernel::TiledGeneral32x32x128:
+    return "tiled-general-32x32x128";
   }
   return "unknown";
 }
@@ -236,20 +234,17 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general") == 0) {
     return SgemmKernel::TiledGeneral;
   }
-  if (std::strcmp(name, "tiled-general-8x8x8") == 0) {
-    return SgemmKernel::TiledGeneral8x8x8;
-  }
-  if (std::strcmp(name, "tiled-general-16x16x8") == 0) {
-    return SgemmKernel::TiledGeneral16x16x8;
-  }
-  if (std::strcmp(name, "tiled-general-16x16x16") == 0) {
-    return SgemmKernel::TiledGeneral16x16x16;
-  }
   if (std::strcmp(name, "tiled-general-32x8x16") == 0) {
     return SgemmKernel::TiledGeneral32x8x16;
   }
-  if (std::strcmp(name, "tiled-general-8x32x16") == 0) {
-    return SgemmKernel::TiledGeneral8x32x16;
+  if (std::strcmp(name, "tiled-general-32x32x64") == 0) {
+    return SgemmKernel::TiledGeneral32x32x64;
+  }
+  if (std::strcmp(name, "tiled-general-32x32x96") == 0) {
+    return SgemmKernel::TiledGeneral32x32x96;
+  }
+  if (std::strcmp(name, "tiled-general-32x32x128") == 0) {
+    return SgemmKernel::TiledGeneral32x32x128;
   }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
 }
@@ -285,20 +280,17 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral:
+  case SgemmKernel::TiledGeneral32x32x64:
+    launch_sgemm_tiled_general<32, 32, 64>(M, N, K, alpha, A, B, beta, C);
+    break;
   case SgemmKernel::TiledGeneral32x8x16:
     launch_sgemm_tiled_general<32, 8, 16>(M, N, K, alpha, A, B, beta, C);
     break;
-  case SgemmKernel::TiledGeneral8x8x8:
-    launch_sgemm_tiled_general<8, 8, 8>(M, N, K, alpha, A, B, beta, C);
+  case SgemmKernel::TiledGeneral32x32x96:
+    launch_sgemm_tiled_general<32, 32, 96>(M, N, K, alpha, A, B, beta, C);
     break;
-  case SgemmKernel::TiledGeneral16x16x8:
-    launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C);
-    break;
-  case SgemmKernel::TiledGeneral16x16x16:
-    launch_sgemm_tiled_general<16, 16, 16>(M, N, K, alpha, A, B, beta, C);
-    break;
-  case SgemmKernel::TiledGeneral8x32x16:
-    launch_sgemm_tiled_general<8, 32, 16>(M, N, K, alpha, A, B, beta, C);
+  case SgemmKernel::TiledGeneral32x32x128:
+    launch_sgemm_tiled_general<32, 32, 128>(M, N, K, alpha, A, B, beta, C);
     break;
   }
 }
