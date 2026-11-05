@@ -401,6 +401,20 @@ const char *kernel_name(SgemmKernel kernel) {
     return "naive-32x32";
   case SgemmKernel::NaiveCoarsened:
     return "naive-coarsened";
+  case SgemmKernel::NaiveCoarsened64x64x2x2:
+    return "naive-coarsened-64x64-2x2";
+  case SgemmKernel::NaiveCoarsened64x64x2x4:
+    return "naive-coarsened-64x64-2x4";
+  case SgemmKernel::NaiveCoarsened64x64x4x2:
+    return "naive-coarsened-64x64-4x2";
+  case SgemmKernel::NaiveCoarsened64x64x4x4:
+    return "naive-coarsened-64x64-4x4";
+  case SgemmKernel::NaiveCoarsened64x64x4x8:
+    return "naive-coarsened-64x64-4x8";
+  case SgemmKernel::NaiveCoarsened64x64x8x4:
+    return "naive-coarsened-64x64-8x4";
+  case SgemmKernel::NaiveCoarsened64x64x8x8:
+    return "naive-coarsened-64x64-8x8";
   case SgemmKernel::TiledBasic:
     return "tiled-basic";
   case SgemmKernel::TiledGeneral:
@@ -459,6 +473,27 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "naive-coarsened") == 0) {
     return SgemmKernel::NaiveCoarsened;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-2x2") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x2x2;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-2x4") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x2x4;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-4x2") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x4x2;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-4x4") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x4x4;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-4x8") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x4x8;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-8x4") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x8x4;
+  }
+  if (std::strcmp(name, "naive-coarsened-64x64-8x8") == 0) {
+    return SgemmKernel::NaiveCoarsened64x64x8x8;
   }
   if (std::strcmp(name, "tiled-basic") == 0) {
     return SgemmKernel::TiledBasic;
@@ -529,7 +564,26 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_naive<32, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::NaiveCoarsened:
+  case SgemmKernel::NaiveCoarsened64x64x4x4:
     launch_sgemm_naive_coarsened<64, 64, 4, 4>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x2x2:
+    launch_sgemm_naive_coarsened<64, 64, 2, 2>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x2x4:
+    launch_sgemm_naive_coarsened<64, 64, 2, 4>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x4x2:
+    launch_sgemm_naive_coarsened<64, 64, 4, 2>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x4x8:
+    launch_sgemm_naive_coarsened<64, 64, 4, 8>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x8x4:
+    launch_sgemm_naive_coarsened<64, 64, 8, 4>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::NaiveCoarsened64x64x8x8:
+    launch_sgemm_naive_coarsened<64, 64, 8, 8>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic:
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);

@@ -8,6 +8,8 @@ Detailed presentation-oriented profiles:
 
 - [`naive-block-size-occupancy-rtx3090.md`](naive-block-size-occupancy-rtx3090.md):
   naive block sizes, resident limits, and occupancy
+- [`naive-thread-coarsening-rtx3090.md`](naive-thread-coarsening-rtx3090.md):
+  register-tile factors, register pressure, and occupancy/reuse tradeoffs
 - [`pre-tiled-profile-rtx3090.md`](pre-tiled-profile-rtx3090.md): row strips,
   column strips, coalescing, and implicit cache reuse
 - [`basic-tiled-profile-rtx3090.md`](basic-tiled-profile-rtx3090.md): explicit
