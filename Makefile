@@ -8,17 +8,18 @@ BUILD_DIR ?= build
 NVCCFLAGS ?= -O3 -DNDEBUG -std=c++17
 CPPFLAGS ?= -Iinclude
 ARGS ?=
+KERNELS ?= naive
 
 TARGET := $(BUILD_DIR)/sgemm_bench
 SOURCES := src/main.cu src/sgemm.cu
 HEADERS := $(wildcard include/*.cuh)
 GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := benchmark
 
-.PHONY: all build run clean rebuild
+.PHONY: all build benchmark run clean rebuild
 
-all: build
+all: benchmark
 
 build: $(TARGET)
 
@@ -26,8 +27,14 @@ $(TARGET): $(SOURCES) $(HEADERS)
 	mkdir -p $(BUILD_DIR)
 	$(NVCC) $(CPPFLAGS) $(NVCCFLAGS) $(GENCODE) $(SOURCES) -o $@
 
-run: build
-	./$(TARGET) $(ARGS)
+benchmark: build
+	@set -e; \
+	for kernel in $(KERNELS); do \
+		echo "=== $$kernel ==="; \
+		./$(TARGET) --kernel "$$kernel" $(ARGS); \
+	done
+
+run: benchmark
 
 clean:
 	rm -rf $(BUILD_DIR)
