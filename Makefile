@@ -18,7 +18,23 @@ KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
 	tiled-general-coarsened-64x64x8-4x4 \
 	tiled-general-coarsened-64x64x8-4x8 \
 	tiled-general-coarsened-64x64x8-8x4 \
-	tiled-general-coarsened-64x64x16-4x4
+	tiled-general-coarsened-64x64x8-8x8 \
+	tiled-general-coarsened-64x64x16-4x4 \
+	tiled-general-coarsened-64x64x16-4x8 \
+	tiled-general-coarsened-64x64x16-8x4 \
+	tiled-general-coarsened-64x64x16-8x8 \
+	tiled-general-coarsened-64x64x32-4x4 \
+	tiled-general-coarsened-64x64x32-4x8 \
+	tiled-general-coarsened-64x64x32-8x4 \
+	tiled-general-coarsened-64x64x32-8x8 \
+	tiled-general-coarsened-128x64x8-8x4 \
+	tiled-general-coarsened-128x64x8-8x8 \
+	tiled-general-coarsened-128x64x16-8x4 \
+	tiled-general-coarsened-128x64x16-8x8 \
+	tiled-general-coarsened-64x128x8-4x8 \
+	tiled-general-coarsened-64x128x8-8x8 \
+	tiled-general-coarsened-64x128x16-4x8 \
+	tiled-general-coarsened-64x128x16-8x8
 SIZES ?= 256 512 1024 2048 4096 8192
 SWEEP_OUTPUT ?= benchmarks/sweep.csv
 SWEEP_ITERS ?=

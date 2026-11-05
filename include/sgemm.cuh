@@ -29,7 +29,23 @@ enum class SgemmKernel {
   TiledGeneralCoarsened64x64x8_4x4,
   TiledGeneralCoarsened64x64x8_4x8,
   TiledGeneralCoarsened64x64x8_8x4,
+  TiledGeneralCoarsened64x64x8_8x8,
   TiledGeneralCoarsened64x64x16_4x4,
+  TiledGeneralCoarsened64x64x16_4x8,
+  TiledGeneralCoarsened64x64x16_8x4,
+  TiledGeneralCoarsened64x64x16_8x8,
+  TiledGeneralCoarsened64x64x32_4x4,
+  TiledGeneralCoarsened64x64x32_4x8,
+  TiledGeneralCoarsened64x64x32_8x4,
+  TiledGeneralCoarsened64x64x32_8x8,
+  TiledGeneralCoarsened128x64x8_8x4,
+  TiledGeneralCoarsened128x64x8_8x8,
+  TiledGeneralCoarsened128x64x16_8x4,
+  TiledGeneralCoarsened128x64x16_8x8,
+  TiledGeneralCoarsened64x128x8_4x8,
+  TiledGeneralCoarsened64x128x8_8x8,
+  TiledGeneralCoarsened64x128x16_4x8,
+  TiledGeneralCoarsened64x128x16_8x8,
 };
 
 const char *kernel_name(SgemmKernel kernel);
