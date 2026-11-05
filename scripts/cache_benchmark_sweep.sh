@@ -9,7 +9,12 @@ output=${1:-benchmarks/rtx3090-sm86.csv}
 peak_gflops=${PEAK_GFLOPS:-35580}
 
 kernels=(
-  naive
+  naive-32x1
+  naive-32x2
+  naive-32x4
+  naive-32x8
+  naive-32x16
+  naive-32x32
   naive-coarsened
   tiled-basic
   tiled-general-8x8x8

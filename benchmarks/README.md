@@ -6,6 +6,8 @@ correctness check passed.
 
 Detailed presentation-oriented profiles:
 
+- [`naive-block-size-occupancy-rtx3090.md`](naive-block-size-occupancy-rtx3090.md):
+  naive block sizes, resident limits, and occupancy
 - [`pre-tiled-profile-rtx3090.md`](pre-tiled-profile-rtx3090.md): row strips,
   column strips, coalescing, and implicit cache reuse
 - [`basic-tiled-profile-rtx3090.md`](basic-tiled-profile-rtx3090.md): explicit

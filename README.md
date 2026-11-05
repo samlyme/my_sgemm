@@ -47,13 +47,14 @@ make large
 ./build/sgemm_bench --kernel row-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel col-strip --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive --m 512 --n 768 --k 256 --iters 50
+./build/sgemm_bench --kernel naive-32x8 --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive-coarsened --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
 ./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50
 ./build/sgemm_bench --help
 ```
 
-The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The default `make` benchmark includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
+The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The naive kernel is available with `32x1`, `32x2`, `32x4`, `32x8`, `32x16`, and `32x32` thread blocks; plain `naive` aliases `naive-32x32`. Keeping 32 threads in the x dimension preserves one horizontal output row per warp while varying the number of warps per block. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
 The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
 

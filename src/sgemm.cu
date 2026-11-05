@@ -72,13 +72,15 @@ __global__ void sgemm_naive(const int M, const int N, const int K,
   }
 }
 
+template <int BX, int BY>
 void launch_sgemm_naive(const int M, const int N, const int K,
                         const float alpha, const float *A, const float *B,
                         const float beta, float *C) {
-  constexpr int block_size = 32;
-  const dim3 threads(block_size, block_size);
-  const dim3 blocks((N + block_size - 1) / block_size,
-                    (M + block_size - 1) / block_size);
+  static_assert(BX > 0 && BY > 0 && BX * BY <= 1024,
+                "dimensions must produce a valid CUDA thread block");
+
+  const dim3 threads(BX, BY);
+  const dim3 blocks((N + BX - 1) / BX, (M + BY - 1) / BY);
   sgemm_naive<<<blocks, threads>>>(M, N, K, alpha, A, B, beta, C);
 }
 
@@ -385,6 +387,18 @@ const char *kernel_name(SgemmKernel kernel) {
     return "col-strip";
   case SgemmKernel::Naive:
     return "naive";
+  case SgemmKernel::Naive32x1:
+    return "naive-32x1";
+  case SgemmKernel::Naive32x2:
+    return "naive-32x2";
+  case SgemmKernel::Naive32x4:
+    return "naive-32x4";
+  case SgemmKernel::Naive32x8:
+    return "naive-32x8";
+  case SgemmKernel::Naive32x16:
+    return "naive-32x16";
+  case SgemmKernel::Naive32x32:
+    return "naive-32x32";
   case SgemmKernel::NaiveCoarsened:
     return "naive-coarsened";
   case SgemmKernel::TiledBasic:
@@ -424,6 +438,24 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "naive") == 0) {
     return SgemmKernel::Naive;
+  }
+  if (std::strcmp(name, "naive-32x1") == 0) {
+    return SgemmKernel::Naive32x1;
+  }
+  if (std::strcmp(name, "naive-32x2") == 0) {
+    return SgemmKernel::Naive32x2;
+  }
+  if (std::strcmp(name, "naive-32x4") == 0) {
+    return SgemmKernel::Naive32x4;
+  }
+  if (std::strcmp(name, "naive-32x8") == 0) {
+    return SgemmKernel::Naive32x8;
+  }
+  if (std::strcmp(name, "naive-32x16") == 0) {
+    return SgemmKernel::Naive32x16;
+  }
+  if (std::strcmp(name, "naive-32x32") == 0) {
+    return SgemmKernel::Naive32x32;
   }
   if (std::strcmp(name, "naive-coarsened") == 0) {
     return SgemmKernel::NaiveCoarsened;
@@ -478,7 +510,23 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_col_strip(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::Naive:
-    launch_sgemm_naive(M, N, K, alpha, A, B, beta, C);
+  case SgemmKernel::Naive32x32:
+    launch_sgemm_naive<32, 32>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::Naive32x1:
+    launch_sgemm_naive<32, 1>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::Naive32x2:
+    launch_sgemm_naive<32, 2>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::Naive32x4:
+    launch_sgemm_naive<32, 4>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::Naive32x8:
+    launch_sgemm_naive<32, 8>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::Naive32x16:
+    launch_sgemm_naive<32, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::NaiveCoarsened:
     launch_sgemm_naive_coarsened<64, 64, 4, 4>(M, N, K, alpha, A, B, beta, C);
