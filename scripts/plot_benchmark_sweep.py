@@ -125,6 +125,28 @@ def write_summary(path: Path, selected: dict[str, list[Result]]) -> None:
                 )
 
 
+def launch_configuration(kernel: str) -> str:
+    prefixes = (
+        "tiled-general-coarsened-",
+        "tiled-general-",
+        "tiled-basic-",
+        "naive-",
+    )
+    for prefix in prefixes:
+        if kernel.startswith(prefix):
+            return kernel.removeprefix(prefix)
+    return kernel
+
+
+def legend_label(family: str, results: list[Result]) -> str:
+    if family == "cuBLAS":
+        return family
+    configurations = list(
+        dict.fromkeys(launch_configuration(result.kernel) for result in results)
+    )
+    return f"{family}\n({', '.join(configurations)})"
+
+
 def configure_axes(axis, sizes: list[int], ylabel: str) -> None:
     axis.set_xscale("log", base=2)
     axis.set_xticks(sizes)
@@ -151,7 +173,7 @@ def plot_metric(
         ylabel = "Average kernel latency (ms)"
         filename = "latency_by_family"
 
-    figure, axis = plt.subplots(figsize=(11, 6.5), constrained_layout=True)
+    figure, axis = plt.subplots(figsize=(13.5, 6.5), constrained_layout=True)
     for family, _ in FAMILIES:
         family_results = selected.get(family, [])
         if not family_results:
@@ -162,7 +184,7 @@ def plot_metric(
             marker="o",
             linewidth=2.2,
             markersize=6,
-            label=family,
+            label=legend_label(family, family_results),
             color=COLORS[family],
         )
 
@@ -172,7 +194,7 @@ def plot_metric(
     else:
         axis.set_ylim(bottom=0)
     axis.set_title(title)
-    axis.legend(loc="best", frameon=True)
+    axis.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), frameon=True)
 
     for extension in ("png", "svg"):
         output_path = output_dir / f"{filename}.{extension}"
