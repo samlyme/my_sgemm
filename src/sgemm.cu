@@ -16,7 +16,7 @@ __global__ void sgemm_naive(const int M, const int N, const int K,
       sum += A[y * K + i] * B[i * N + x];
     }
 
-    C[y * K + x] = alpha * sum + beta * C[y * K + x];
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
   }
 }
 
@@ -168,8 +168,9 @@ void launch_sgemm_tiled_general(const int M, const int N, const int K,
     return cudaSuccess;
   }();
   if (shared_memory_status != cudaSuccess) {
-    throw std::runtime_error(std::string("failed to configure shared memory: ") +
-                             cudaGetErrorString(shared_memory_status));
+    throw std::runtime_error(
+        std::string("failed to configure shared memory: ") +
+        cudaGetErrorString(shared_memory_status));
   }
 
   dim3 blockDim(BN, BM);

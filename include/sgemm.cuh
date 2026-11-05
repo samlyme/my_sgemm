@@ -25,7 +25,7 @@ enum class SgemmKernel {
   TiledGeneral32x32x64,
   TiledGeneral32x32x96,
   TiledGeneral32x32x128,
-  TiledGeneral32x8x16
+  TiledGeneral32x8x16,
   // TiledGeneralCoarsened,
 };
 
