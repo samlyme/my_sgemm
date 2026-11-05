@@ -2,7 +2,6 @@
 
 #include <cstring>
 #include <stdexcept>
-#include <string>
 
 namespace {
 __global__ void sgemm_naive(const int M, const int N, const int K,
@@ -31,9 +30,9 @@ void launch_sgemm_naive(const int M, const int N, const int K,
 }
 
 template <int BK>
-__global__ void sgemm_smem_cache(const int M, const int N, const int K,
-                                 const float alpha, const float *A,
-                                 const float *B, const float beta, float *C) {
+__global__ void sgemm_tiled_basic(const int M, const int N, const int K,
+                                  const float alpha, const float *A,
+                                  const float *B, const float beta, float *C) {
   const int yb = blockIdx.y * blockDim.y;
   const int xb = blockIdx.x * blockDim.x;
 
@@ -79,15 +78,15 @@ __global__ void sgemm_smem_cache(const int M, const int N, const int K,
 }
 
 template <int BK>
-void launch_sgemm_smem_cache(const int M, const int N, const int K,
-                             const float alpha, const float *A, const float *B,
-                             const float beta, float *C) {
+void launch_sgemm_tiled_basic(const int M, const int N, const int K,
+                              const float alpha, const float *A, const float *B,
+                              const float beta, float *C) {
   static_assert(BK > 0 && BK * BK <= 1024,
                 "BK must produce a valid CUDA thread block");
 
   dim3 blockDim(BK, BK);
   dim3 gridDim((N + BK - 1) / BK, (M + BK - 1) / BK);
-  sgemm_smem_cache<BK><<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+  sgemm_tiled_basic<BK><<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
 
@@ -116,6 +115,9 @@ const char *kernel_name(SgemmKernel kernel) {
 }
 
 SgemmKernel parse_kernel(const char *name) {
+  if (std::strcmp(name, "naive") == 0) {
+    return SgemmKernel::Naive;
+  }
   if (std::strcmp(name, "naive-8x8") == 0) {
     return SgemmKernel::Naive8x8;
   }
@@ -156,6 +158,7 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
   case SgemmKernel::Naive16x16:
     launch_sgemm_naive<16, 16>(M, N, K, alpha, A, B, beta, C);
     break;
+  case SgemmKernel::Naive:
   case SgemmKernel::Naive32x32:
     launch_sgemm_naive<32, 32>(M, N, K, alpha, A, B, beta, C);
     break;
@@ -166,14 +169,14 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_naive<16, 64>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic8x8:
-    launch_sgemm_smem_cache<8>(M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_basic<8>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic16x16:
-    launch_sgemm_smem_cache<16>(M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_basic<16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledBasic:
   case SgemmKernel::TiledBasic32x32:
-    launch_sgemm_smem_cache<32>(M, N, K, alpha, A, B, beta, C);
+    launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);
     break;
   }
 }
