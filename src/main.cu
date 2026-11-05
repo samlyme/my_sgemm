@@ -41,8 +41,7 @@ void print_usage(const char* program) {
       << "  tiled-basic-8, tiled-basic-16, tiled-basic-32,\n"
       << "  tiled-general, tiled-general-16x16x32, tiled-general-16x16x64,\n"
       << "  tiled-general-16x16x128, tiled-general-16x16x256,\n"
-      << "  tiled-general-16x16x512, tiled-general-32x32x64,\n"
-      << "  tiled-general-32x32x96,\n"
+      << "  tiled-general-32x32x64, tiled-general-32x32x96,\n"
       << "  tiled-general-32x32x128\n";
 }
 
