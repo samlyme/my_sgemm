@@ -92,6 +92,8 @@ void launch_sgemm_tiled_basic(const int M, const int N, const int K,
 
 const char *kernel_name(SgemmKernel kernel) {
   switch (kernel) {
+  case SgemmKernel::Naive:
+    return "naive";
   case SgemmKernel::Naive8x8:
     return "naive-8x8";
   case SgemmKernel::Naive16x16:
