@@ -35,7 +35,7 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
 ## Run
 
 ```bash
-# Build and run every kernel/configuration with M=N=K=1024
+# Build and run every kernel/configuration with M=N=K=8192
 make
 
 # Sweep one kernel over square problem sizes from 256 through 8192
