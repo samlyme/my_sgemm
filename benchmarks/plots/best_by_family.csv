@@ -29,9 +29,3 @@ Coarsened tiled,1024,tiled-general-coarsened-64x64x32-8x4,250,0.193000,11100.271
 Coarsened tiled,2048,tiled-general-coarsened-64x64x32-8x4,100,1.273000,13493.017
 Coarsened tiled,4096,tiled-general-coarsened-64x64x32-8x4,30,9.953000,13808.123
 Coarsened tiled,8192,tiled-general-coarsened-64x64x32-8x4,10,78.211000,14058.242
-Register-staged,256,tiled-general-coarsened-register-64x64x32-8x4,1000,0.027000,1257.996
-Register-staged,512,tiled-general-coarsened-register-64x64x32-8x4,500,0.051000,5267.744
-Register-staged,1024,tiled-general-coarsened-register-64x64x32-8x4,250,0.193000,11153.403
-Register-staged,2048,tiled-general-coarsened-register-64x64x32-8x4,100,1.264000,13586.991
-Register-staged,4096,tiled-general-coarsened-register-64x64x32-8x4,30,9.853000,13948.951
-Register-staged,8192,tiled-general-coarsened-register-64x64x32-8x4,10,76.870000,14303.570

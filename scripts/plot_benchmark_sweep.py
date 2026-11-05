@@ -36,12 +36,7 @@ FAMILIES = (
     ),
     (
         "Coarsened tiled",
-        lambda kernel: kernel.startswith("tiled-general-coarsened-")
-        and not kernel.startswith("tiled-general-coarsened-register"),
-    ),
-    (
-        "Register-staged",
-        lambda kernel: kernel.startswith("tiled-general-coarsened-register"),
+        lambda kernel: kernel.startswith("tiled-general-coarsened-"),
     ),
 )
 
@@ -51,7 +46,6 @@ COLORS = {
     "Basic tiled": "#e69f00",
     "General tiled": "#56b4e9",
     "Coarsened tiled": "#009e73",
-    "Register-staged": "#0072b2",
 }
 
 

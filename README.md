@@ -54,7 +54,6 @@ make plots
 ./build/sgemm_bench --kernel naive-coarsened-64x64-4x8 --iters 50
 ./build/sgemm_bench --kernel tiled-general-16x16x64 --iters 50
 ./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50
-./build/sgemm_bench --kernel tiled-general-coarsened-register-64x64x32-8x4 --iters 50
 ./build/sgemm_bench --help
 ```
 

@@ -202,7 +202,7 @@ void launch_sgemm_tiled_general(const int M, const int N, const int K,
       <<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
 }
 
-template <int BM, int BN, int BK, int TM, int TN, bool CacheOperands>
+template <int BM, int BN, int BK, int TM, int TN>
 __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
                                               const int K, const float alpha,
                                               const float *A, const float *B,
@@ -254,28 +254,10 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
     __syncthreads();
 
     for (int i = 0; i < BK; i++) {
-      if constexpr (CacheOperands) {
-        float a[TM];
-        float b[TN];
-
-        for (int ty = 0; ty < TM; ty++) {
-          a[ty] = As[(yt * TM + ty) * BK + i];
-        }
+      for (int ty = 0; ty < TM; ty++) {
+        const float a = As[(yt * TM + ty) * BK + i];
         for (int tx = 0; tx < TN; tx++) {
-          b[tx] = Bs[i * BN + xt * TN + tx];
-        }
-
-        for (int ty = 0; ty < TM; ty++) {
-          for (int tx = 0; tx < TN; tx++) {
-            sums[ty][tx] += a[ty] * b[tx];
-          }
-        }
-      } else {
-        for (int ty = 0; ty < TM; ty++) {
-          const float a = As[(yt * TM + ty) * BK + i];
-          for (int tx = 0; tx < TN; tx++) {
-            sums[ty][tx] += a * Bs[i * BN + xt * TN + tx];
-          }
+          sums[ty][tx] += a * Bs[i * BN + xt * TN + tx];
         }
       }
     }
@@ -290,7 +272,7 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
     }
   }
 }
-template <int BM, int BN, int BK, int TM, int TN, bool CacheOperands = false>
+template <int BM, int BN, int BK, int TM, int TN>
 void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
                                           const float alpha, const float *A,
                                           const float *B, const float beta,
@@ -306,7 +288,7 @@ void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
 
   dim3 blockDim(BN / TN, BM / TM);
   dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
-  sgemm_tiled_general_coarsened<BM, BN, BK, TM, TN, CacheOperands>
+  sgemm_tiled_general_coarsened<BM, BN, BK, TM, TN>
       <<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
@@ -395,10 +377,6 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-64x128x16-4x8";
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
     return "tiled-general-coarsened-64x128x16-8x8";
-  case SgemmKernel::TiledGeneralCoarsenedRegister:
-    return "tiled-general-coarsened-register";
-  case SgemmKernel::TiledGeneralCoarsenedRegister64x64x32_8x4:
-    return "tiled-general-coarsened-register-64x64x32-8x4";
   }
   return "unknown";
 }
@@ -526,12 +504,6 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general-coarsened-64x128x16-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x128x16_8x8;
-  }
-  if (std::strcmp(name, "tiled-general-coarsened-register") == 0) {
-    return SgemmKernel::TiledGeneralCoarsenedRegister;
-  }
-  if (std::strcmp(name, "tiled-general-coarsened-register-64x64x32-8x4") == 0) {
-    return SgemmKernel::TiledGeneralCoarsenedRegister64x64x32_8x4;
   }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
 }
@@ -675,11 +647,6 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
     launch_sgemm_tiled_general_coarsened<64, 128, 16, 8, 8>(M, N, K, alpha, A,
                                                             B, beta, C);
-    break;
-  case SgemmKernel::TiledGeneralCoarsenedRegister:
-  case SgemmKernel::TiledGeneralCoarsenedRegister64x64x32_8x4:
-    launch_sgemm_tiled_general_coarsened<64, 64, 32, 8, 4, true>(M, N, K, alpha,
-                                                                 A, B, beta, C);
     break;
   }
 }
