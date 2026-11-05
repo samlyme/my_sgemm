@@ -42,7 +42,12 @@ void print_usage(const char* program) {
       << "  tiled-general, tiled-general-16x16x32, tiled-general-16x16x64,\n"
       << "  tiled-general-16x16x128, tiled-general-16x16x256,\n"
       << "  tiled-general-32x32x64, tiled-general-32x32x96,\n"
-      << "  tiled-general-32x32x128\n";
+      << "  tiled-general-32x32x128, tiled-general-coarsened,\n"
+      << "  tiled-general-coarsened-64x64x8-2x2,\n"
+      << "  tiled-general-coarsened-64x64x8-4x4,\n"
+      << "  tiled-general-coarsened-64x64x8-4x8,\n"
+      << "  tiled-general-coarsened-64x64x8-8x4,\n"
+      << "  tiled-general-coarsened-64x64x16-4x4\n";
 }
 
 int positive_int(const char* value, const char* option) {

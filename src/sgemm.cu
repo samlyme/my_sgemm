@@ -176,11 +176,11 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
   const int yt = threadIdx.y;
   const int xt = threadIdx.x;
 
-  const int y = yb + yt;
-  const int x = xb + xt;
+  const int y = yb + yt * TM;
+  const int x = xb + xt * TN;
 
-  const int tid = yt * BN + xt;
-  const int numThreads = BM * BN;
+  const int tid = yt * blockDim.x + xt;
+  const int numThreads = blockDim.x * blockDim.y;
 
   __shared__ float As[BM * BK];
   __shared__ float Bs[BK * BN];
@@ -216,10 +216,11 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
 
     __syncthreads();
 
-    for (int ty = 0; ty < TM; ty++) {
-      for (int tx = 0; tx < TN; tx++) {
-        for (int i = 0; i < BK; i++) {
-          sums[ty][tx] += As[yt * BK + i] * Bs[i * BN + xt];
+    for (int i = 0; i < BK; i++) {
+      for (int ty = 0; ty < TM; ty++) {
+        const float a = As[(yt * TM + ty) * BK + i];
+        for (int tx = 0; tx < TN; tx++) {
+          sums[ty][tx] += a * Bs[i * BN + xt * TN + tx];
         }
       }
     }
@@ -227,8 +228,10 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
   }
   for (int ty = 0; ty < TM; ty++) {
     for (int tx = 0; tx < TN; tx++) {
-      const int C_idx = (y + ty) * N + x + tx;
-      C[C_idx] = alpha * sums[ty][tx] + beta * C[C_idx];
+      if (y + ty < M && x + tx < N) {
+        const int C_idx = (y + ty) * N + x + tx;
+        C[C_idx] = alpha * sums[ty][tx] + beta * C[C_idx];
+      }
     }
   }
 }
@@ -237,12 +240,14 @@ void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
                                           const float alpha, const float *A,
                                           const float *B, const float beta,
                                           float *C) {
-  static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
-                "BM and BN must produce a valid CUDA thread block");
+  static_assert(BM > 0 && BN > 0 && BK > 0 && TM > 0 && TN > 0,
+                "tile dimensions must be positive");
+  static_assert(BN % TN == 0 && BM % TM == 0,
+                "thread tiles must divide the block tile evenly");
+  static_assert((BM / TM) * (BN / TN) <= 1024,
+                "coarsening must produce a valid CUDA thread block");
   static_assert((BM * BK + BK * BN) * sizeof(float) <= 48 * 1024,
                 "tile must fit in 48 KiB of shared memory");
-  static_assert(BN % TN == 0 && BM % TM == 0,
-                "Thread coarsening must be even.");
 
   dim3 blockDim(BN / TN, BM / TM);
   dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
@@ -289,6 +294,18 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-32x32x96";
   case SgemmKernel::TiledGeneral32x32x128:
     return "tiled-general-32x32x128";
+  case SgemmKernel::TiledGeneralCoarsened:
+    return "tiled-general-coarsened";
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_2x2:
+    return "tiled-general-coarsened-64x64x8-2x2";
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_4x4:
+    return "tiled-general-coarsened-64x64x8-4x4";
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_4x8:
+    return "tiled-general-coarsened-64x64x8-4x8";
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_8x4:
+    return "tiled-general-coarsened-64x64x8-8x4";
+  case SgemmKernel::TiledGeneralCoarsened64x64x16_4x4:
+    return "tiled-general-coarsened-64x64x16-4x4";
   }
   return "unknown";
 }
@@ -348,6 +365,24 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general-32x32x128") == 0) {
     return SgemmKernel::TiledGeneral32x32x128;
   }
+  if (std::strcmp(name, "tiled-general-coarsened") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x8-2x2") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x8_2x2;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x8-4x4") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x8_4x4;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x8-4x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x8_4x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x8-8x4") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x8_8x4;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x16-4x4") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x16_4x4;
+  }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
 }
 
@@ -402,6 +437,27 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     break;
   case SgemmKernel::TiledGeneral32x32x128:
     launch_sgemm_tiled_general<32, 32, 128>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_2x2:
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 2, 2>(
+        M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened:
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_4x4:
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 4>(
+        M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_4x8:
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 4, 8>(
+        M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x8_8x4:
+    launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 4>(
+        M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x16_4x4:
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 4>(
+        M, N, K, alpha, A, B, beta, C);
     break;
   }
 }
