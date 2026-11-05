@@ -43,7 +43,8 @@ void print_usage(const char* program) {
       << "  tiled-general-16x16x128, tiled-general-16x16x256,\n"
       << "  tiled-general-32x32x64, tiled-general-32x32x96,\n"
       << "  tiled-general-32x32x128, tiled-general-coarsened,\n"
-      << "  tiled-general-coarsened-BMxBNxBK-TMxTN variants listed in Makefile\n";
+      << "  tiled-general-coarsened-BMxBNxBK-TMxTN variants listed in Makefile,\n"
+      << "  tiled-general-coarsened-register-64x64x32-8x4\n";
 }
 
 int positive_int(const char* value, const char* option) {
