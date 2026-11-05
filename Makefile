@@ -10,8 +10,10 @@ CPPFLAGS ?= -Iinclude
 ARGS ?=
 KERNELS ?= naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
 	tiled-basic-8 tiled-basic-16 tiled-basic-32 \
-	tiled-general-32x8x16 tiled-general-32x32x64 \
-	tiled-general-32x32x96 tiled-general-32x32x128
+	tiled-general-16x16x32 tiled-general-16x16x64 \
+	tiled-general-16x16x128 tiled-general-16x16x256 \
+	tiled-general-16x16x512 tiled-general-32x8x16 \
+	tiled-general-32x32x64 tiled-general-32x32x96 tiled-general-32x32x128
 SIZES ?= 256 512 1024 2048 4096 8192
 SWEEP_OUTPUT ?= benchmarks/sweep.csv
 SWEEP_ITERS ?=

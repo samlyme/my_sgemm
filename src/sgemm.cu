@@ -106,8 +106,9 @@ __global__ void sgemm_tiled_general(const int M, const int N, const int K,
   const int tid = yt * BN + xt;
   const int numThreads = BM * BN;
 
-  __shared__ float As[BM * BK];
-  __shared__ float Bs[BK * BN];
+  extern __shared__ float shared[];
+  float *As = shared;
+  float *Bs = shared + BM * BK;
 
   float sum = 0.0;
 
@@ -157,10 +158,24 @@ void launch_sgemm_tiled_general(const int M, const int N, const int K,
   static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
                 "BM and BN must produce a valid CUDA thread block");
 
+  constexpr int shared_bytes = (BM * BK + BK * BN) * sizeof(float);
+  static const cudaError_t shared_memory_status = [=] {
+    if constexpr (shared_bytes > 48 * 1024) {
+      return cudaFuncSetAttribute(sgemm_tiled_general<BM, BN, BK>,
+                                  cudaFuncAttributeMaxDynamicSharedMemorySize,
+                                  shared_bytes);
+    }
+    return cudaSuccess;
+  }();
+  if (shared_memory_status != cudaSuccess) {
+    throw std::runtime_error(std::string("failed to configure shared memory: ") +
+                             cudaGetErrorString(shared_memory_status));
+  }
+
   dim3 blockDim(BN, BM);
   dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
   sgemm_tiled_general<BM, BN, BK>
-      <<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+      <<<gridDim, blockDim, shared_bytes>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
 
@@ -188,6 +203,16 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-basic-32";
   case SgemmKernel::TiledGeneral:
     return "tiled-general";
+  case SgemmKernel::TiledGeneral16x16x32:
+    return "tiled-general-16x16x32";
+  case SgemmKernel::TiledGeneral16x16x64:
+    return "tiled-general-16x16x64";
+  case SgemmKernel::TiledGeneral16x16x128:
+    return "tiled-general-16x16x128";
+  case SgemmKernel::TiledGeneral16x16x256:
+    return "tiled-general-16x16x256";
+  case SgemmKernel::TiledGeneral16x16x512:
+    return "tiled-general-16x16x512";
   case SgemmKernel::TiledGeneral32x8x16:
     return "tiled-general-32x8x16";
   case SgemmKernel::TiledGeneral32x32x64:
@@ -233,6 +258,21 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general") == 0) {
     return SgemmKernel::TiledGeneral;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x32") == 0) {
+    return SgemmKernel::TiledGeneral16x16x32;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x64") == 0) {
+    return SgemmKernel::TiledGeneral16x16x64;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x128") == 0) {
+    return SgemmKernel::TiledGeneral16x16x128;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x256") == 0) {
+    return SgemmKernel::TiledGeneral16x16x256;
+  }
+  if (std::strcmp(name, "tiled-general-16x16x512") == 0) {
+    return SgemmKernel::TiledGeneral16x16x512;
   }
   if (std::strcmp(name, "tiled-general-32x8x16") == 0) {
     return SgemmKernel::TiledGeneral32x8x16;
@@ -280,6 +320,21 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_basic<32>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral:
+  case SgemmKernel::TiledGeneral16x16x32:
+    launch_sgemm_tiled_general<16, 16, 32>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral16x16x64:
+    launch_sgemm_tiled_general<16, 16, 64>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral16x16x128:
+    launch_sgemm_tiled_general<16, 16, 128>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral16x16x256:
+    launch_sgemm_tiled_general<16, 16, 256>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral16x16x512:
+    launch_sgemm_tiled_general<16, 16, 512>(M, N, K, alpha, A, B, beta, C);
+    break;
   case SgemmKernel::TiledGeneral32x32x64:
     launch_sgemm_tiled_general<32, 32, 64>(M, N, K, alpha, A, B, beta, C);
     break;
