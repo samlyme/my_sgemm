@@ -1,5 +1,6 @@
 #include "sgemm.cuh"
 
+#include <__clang_cuda_runtime_wrapper.h>
 #include <cstring>
 #include <stdexcept>
 
@@ -87,6 +88,79 @@ void launch_sgemm_tiled_basic(const int M, const int N, const int K,
   dim3 blockDim(BK, BK);
   dim3 gridDim((N + BK - 1) / BK, (M + BK - 1) / BK);
   sgemm_tiled_basic<BK><<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+}
+
+template <int BM, int BN, int BK>
+__global__ void sgemm_tiled_general(const int M, const int N, const int K,
+                                    const float alpha, const float *A,
+                                    const float *B, const float beta,
+                                    float *C) {
+  const int yb = blockIdx.y * BM;
+  const int xb = blockIdx.x * BN;
+
+  const int yt = threadIdx.y;
+  const int xt = threadIdx.x;
+
+  const int y = yb + yt;
+  const int x = xb + xt;
+
+  const int tid = yt * BM + xt;
+  const int numThreads = BM * BN;
+
+  __shared__ float As[BM * BK];
+  __shared__ float Bs[BK * BN];
+
+  float sum = 0.0;
+
+  for (int k = 0; k < K; k += BK) {
+    for (int id = tid; id < BM * BK; id += numThreads) {
+      const int yid = id / BK;
+      const int xid = id % BK;
+      const int A_tile_y = yb + yid;
+      const int A_tile_x = k + xid;
+
+      if (A_tile_y < M && A_tile_x < K) {
+        As[id] = A[A_tile_y * K + A_tile_x];
+      } else {
+        As[id] = 0.0;
+      }
+    }
+
+    for (int id = tid; id < BM * BK; id += numThreads) {
+      const int yid = id / BK;
+      const int xid = id % BK;
+      const int B_tile_y = k + yid;
+      const int B_tile_x = xb + xid;
+
+      if (B_tile_y < K && B_tile_x < N) {
+        Bs[id] = B[B_tile_y * N + B_tile_x];
+      } else {
+        Bs[id] = 0.0;
+      }
+    }
+
+    __syncthreads();
+
+    for (int i = 0; i < BK; i++) {
+      sum += As[xt * BK + i] * Bs[i * BN + yt];
+    }
+  }
+
+  if (y < M && x < N) {
+    C[y * N + x] = alpha * sum + beta * C[y * N + x];
+  }
+}
+template <int BM, int BN, int BK>
+void launch_sgemm_tiled_general(const int M, const int N, const int K,
+                                const float alpha, const float *A,
+                                const float *B, const float beta, float *C) {
+  static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
+                "BK must produce a valid CUDA thread block");
+
+  dim3 blockDim(BM, BN);
+  dim3 gridDim((N + BK - 1) / BK, (M + BK - 1) / BK);
+  sgemm_tiled_basic<BM, BN, BK>
+      <<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
 }
 } // namespace
 
