@@ -30,10 +30,24 @@ $(TARGET): $(SOURCES) $(HEADERS)
 
 benchmark: build
 	@set -e; \
+	summary=$$(mktemp); \
+	output=$$(mktemp); \
+	trap 'rm -f "$$summary" "$$output"' EXIT; \
 	for kernel in $(KERNELS); do \
 		echo "=== $$kernel ==="; \
-		./$(TARGET) --kernel "$$kernel" $(ARGS); \
-	done
+		if ! ./$(TARGET) --kernel "$$kernel" $(ARGS) > "$$output" 2>&1; then \
+			cat "$$output"; \
+			exit 1; \
+		fi; \
+		cat "$$output"; \
+		status=$$(awk '/^check:/ { print $$2 }' "$$output"); \
+		time_ms=$$(awk '/^time:/ { print $$2 }' "$$output"); \
+		gflops=$$(awk '/^perf:/ { print $$2 }' "$$output"); \
+		printf '%s\t%s\t%s\t%s\n' "$$kernel" "$$status" "$$time_ms" "$$gflops" >> "$$summary"; \
+	done; \
+	printf '\n%-28s  %-6s  %12s  %14s\n' "Kernel" "Check" "Time (ms)" "GFLOP/s"; \
+	printf '%-28s  %-6s  %12s  %14s\n' "----------------------------" "------" "------------" "--------------"; \
+	awk -F '\t' '{ printf "%-28s  %-6s  %12.3f  %14.3f\n", $$1, $$2, $$3, $$4 }' "$$summary"
 
 run: benchmark
 
