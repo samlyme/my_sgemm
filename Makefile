@@ -16,6 +16,9 @@ KERNELS := row-strip col-strip \
 	tiled-general-8x8x8 \
 	tiled-general-16x16x8 \
 	tiled-general-16x16x16 \
+	tiled-general-32x16x16 \
+	tiled-general-16x32x16 \
+	tiled-general-32x32x16 \
 	tiled-general-32x8x16 \
 	tiled-general-8x32x16 \
 	tiled-general-coarsened-32x32x8-2x2 \

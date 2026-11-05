@@ -14,6 +14,8 @@ Detailed presentation-oriented profiles:
   column strips, coalescing, and implicit cache reuse
 - [`basic-tiled-profile-rtx3090.md`](basic-tiled-profile-rtx3090.md): explicit
   shared-memory reuse and the generalized tile design space
+- [`block-tiled-coarsened-profile-rtx3090.md`](block-tiled-coarsened-profile-rtx3090.md):
+  combined shared-memory and register tiling performance
 
 Measurement environment:
 

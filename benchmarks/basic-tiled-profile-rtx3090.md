@@ -40,6 +40,22 @@ The fixed 32x32 design also requires 1,024 threads and 8 KiB of static shared me
 
 This creates the motivation for generalized tiling: the output dimensions and `K` slice should be independent tuning parameters rather than one fixed tile width.
 
+### Recovering occupancy with rectangular general tiles
+
+The generalized kernel can reduce the number of threads per block independently of the `K` tile. The following focused comparison keeps `BK=16` for the general kernels and progressively reduces the output tile:
+
+| Configuration | Threads/block | Shared memory/block | Registers/thread | Active warps/SM | Theoretical occupancy | Achieved occupancy | Time | Performance |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Basic 32x32x32 | 1,024 | 8 KiB | 38 | 32 | 66.67% | 66.62% | 5.850 ms | 2,936.6 GFLOP/s |
+| General 32x32x16 | 1,024 | 4 KiB | 40 | 32 | 66.67% | 66.62% | 9.491 ms | 1,810.2 GFLOP/s |
+| General 32x16x16 | 512 | 3 KiB | 40 | 48 | 100% | 99.01% | 6.294 ms | 2,729.7 GFLOP/s |
+| General 16x32x16 | 512 | 3 KiB | 40 | 48 | 100% | 98.99% | 6.079 ms | 2,826.0 GFLOP/s |
+| General 16x16x16 | 256 | 2 KiB | 40 | 48 | 100% | 98.91% | 5.728 ms | 2,999.3 GFLOP/s |
+
+Reducing `BK` alone does not improve occupancy: the 32x32x16 kernel still has 1,024 threads, so only one block and 32 warps can reside on an SM. Halving one output dimension reduces the block to 512 threads and permits three resident blocks, filling all 48 warp slots. A 16x16 tile uses 256 threads and reaches the same occupancy with six resident blocks.
+
+The occupancy gain is not free. Smaller output tiles reduce arithmetic intensity and duplicate input-tile loads across more blocks. The 512-thread rectangular kernels recover full occupancy but remain slightly slower than the basic kernel. The 16x16x16 kernel balances the lost reuse with better latency hiding and narrowly exceeds the basic kernel in this run. The slow 32x32x16 result also shows the cost of halving `BK`: it retains the same thread limit and output reuse as the basic kernel while requiring twice as many tile iterations and synchronization pairs.
+
 ## Generalized tile model
 
 For an output tile `BM x BN` and a `K` slice of width `BK`:
@@ -107,6 +123,9 @@ for kernel in \
   tiled-general-8x8x8 \
   tiled-general-16x16x8 \
   tiled-general-16x16x16 \
+  tiled-general-32x16x16 \
+  tiled-general-16x32x16 \
+  tiled-general-32x32x16 \
   tiled-general-32x8x16 \
   tiled-general-8x32x16
 do

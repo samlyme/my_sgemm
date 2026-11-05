@@ -45,7 +45,7 @@ void print_usage(const char* program) {
       << "Naive-coarsened configurations: 2x2, 2x4, 4x2, 4x4, 4x8,"
          " 8x4, 8x8\n"
       << "Tiled-general configurations: 8x8x8, 16x16x8, 16x16x16,"
-         " 32x8x16, 8x32x16\n"
+         " 32x16x16, 16x32x16, 32x32x16, 32x8x16, 8x32x16\n"
       << "Coarsened configurations: 32x32x8-2x2, 64x64x8-4x4,"
          " 64x64x16-4x4, 128x64x8-8x4\n";
 }

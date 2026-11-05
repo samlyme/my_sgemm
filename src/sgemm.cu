@@ -425,6 +425,12 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-16x16x8";
   case SgemmKernel::TiledGeneral16x16x16:
     return "tiled-general-16x16x16";
+  case SgemmKernel::TiledGeneral32x16x16:
+    return "tiled-general-32x16x16";
+  case SgemmKernel::TiledGeneral16x32x16:
+    return "tiled-general-16x32x16";
+  case SgemmKernel::TiledGeneral32x32x16:
+    return "tiled-general-32x32x16";
   case SgemmKernel::TiledGeneral32x8x16:
     return "tiled-general-32x8x16";
   case SgemmKernel::TiledGeneral8x32x16:
@@ -509,6 +515,15 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general-16x16x16") == 0) {
     return SgemmKernel::TiledGeneral16x16x16;
+  }
+  if (std::strcmp(name, "tiled-general-32x16x16") == 0) {
+    return SgemmKernel::TiledGeneral32x16x16;
+  }
+  if (std::strcmp(name, "tiled-general-16x32x16") == 0) {
+    return SgemmKernel::TiledGeneral16x32x16;
+  }
+  if (std::strcmp(name, "tiled-general-32x32x16") == 0) {
+    return SgemmKernel::TiledGeneral32x32x16;
   }
   if (std::strcmp(name, "tiled-general-32x8x16") == 0) {
     return SgemmKernel::TiledGeneral32x8x16;
@@ -597,6 +612,15 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     break;
   case SgemmKernel::TiledGeneral16x16x8:
     launch_sgemm_tiled_general<16, 16, 8>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral32x16x16:
+    launch_sgemm_tiled_general<32, 16, 16>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral16x32x16:
+    launch_sgemm_tiled_general<16, 32, 16>(M, N, K, alpha, A, B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneral32x32x16:
+    launch_sgemm_tiled_general<32, 32, 16>(M, N, K, alpha, A, B, beta, C);
     break;
   case SgemmKernel::TiledGeneral32x8x16:
     launch_sgemm_tiled_general<32, 8, 16>(M, N, K, alpha, A, B, beta, C);
