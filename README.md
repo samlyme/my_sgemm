@@ -48,7 +48,7 @@ make sweep
 ./build/sgemm_bench --kernel naive-32x8 --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive-coarsened --m 512 --n 768 --k 256 --iters 50
 ./build/sgemm_bench --kernel naive-coarsened-64x64-4x8 --iters 50
-./build/sgemm_bench --kernel tiled-general-32x8x16 --iters 50
+./build/sgemm_bench --kernel tiled-general-16x16x64 --iters 50
 ./build/sgemm_bench --kernel tiled-general-coarsened-64x64x8-4x4 --iters 50
 ./build/sgemm_bench --help
 ```
