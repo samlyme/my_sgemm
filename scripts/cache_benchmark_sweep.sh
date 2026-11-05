@@ -36,13 +36,13 @@ for kernel in "${kernels[@]}"; do
     if [[ -n "$fixed_iterations" ]]; then
       iterations=$fixed_iterations
     elif (( size <= 1024 )); then
-      iterations=100
+      iterations=200
     elif (( size <= 2048 )); then
-      iterations=25
+      iterations=50
     elif (( size <= 4096 )); then
-      iterations=5
+      iterations=10
     else
-      iterations=1
+      iterations=3
     fi
 
     echo "running: $kernel at ${size}x${size}x${size} ($iterations iterations)"
