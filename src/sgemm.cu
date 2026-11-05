@@ -232,6 +232,23 @@ __global__ void sgemm_tiled_general_coarsened(const int M, const int N,
     }
   }
 }
+template <int BM, int BN, int BK, int TM, int TN>
+void launch_sgemm_tiled_general_coarsened(const int M, const int N, const int K,
+                                          const float alpha, const float *A,
+                                          const float *B, const float beta,
+                                          float *C) {
+  static_assert(BM > 0 && BN > 0 && BK > 0 && BM * BN <= 1024,
+                "BM and BN must produce a valid CUDA thread block");
+  static_assert((BM * BK + BK * BN) * sizeof(float) <= 48 * 1024,
+                "tile must fit in 48 KiB of shared memory");
+  static_assert(BN % TN == 0 && BM % TM == 0,
+                "Thread coarsening must be even.");
+
+  dim3 blockDim(BN / TN, BM / TM);
+  dim3 gridDim((N + BN - 1) / BN, (M + BM - 1) / BM);
+  sgemm_tiled_general_coarsened<BM, BN, BK, TM, TN>
+      <<<gridDim, blockDim>>>(M, N, K, alpha, A, B, beta, C);
+}
 } // namespace
 
 const char *kernel_name(SgemmKernel kernel) {
