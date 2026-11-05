@@ -7,3 +7,7 @@ CompileFlags:
     - -I../include
     - --cuda-path=/home/sam/code/SGEMM_CUDA/.cuda
     - --cuda-gpu-arch=sm_86
+
+Diagnostics:
+  Suppress:
+    - bad_reinterpret_cast_small_int
