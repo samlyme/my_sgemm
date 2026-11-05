@@ -20,7 +20,7 @@ KERNELS := naive tiled-basic \
 SOURCES := src/main.cu src/sgemm.cu
 HEADERS := $(wildcard include/*.cuh)
 CPPFLAGS ?= -Iinclude
-NVCCFLAGS ?= -O3 -std=c++17 --use_fast_math --expt-relaxed-constexpr
+NVCCFLAGS ?= -O3 -DNDEBUG
 GENCODE := -gencode arch=compute_$(ARCH),code=sm_$(ARCH)
 ARGS ?=
 KERNEL ?=

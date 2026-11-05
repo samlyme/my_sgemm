@@ -8,10 +8,7 @@ endif()
 
 project(my_sgemm LANGUAGES CXX CUDA)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CUDA_STANDARD 17)
-set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(sgemm_bench
@@ -20,10 +17,3 @@ add_executable(sgemm_bench
 )
 
 target_include_directories(sgemm_bench PRIVATE include)
-target_compile_options(sgemm_bench PRIVATE
-  $<$<COMPILE_LANGUAGE:CXX>:-Wall>
-  $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
-  $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
-  $<$<COMPILE_LANGUAGE:CUDA>:--use_fast_math>
-  $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
-)
