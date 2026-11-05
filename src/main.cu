@@ -29,25 +29,15 @@ struct Options {
   int n = 1024;
   int k = 1024;
   int iterations = 100;
-  SgemmKernel kernel = SgemmKernel::Naive;
+  SgemmKernel kernel = SgemmKernel::Naive32x32;
 };
 
 void print_usage(const char* program) {
   std::cout
       << "Usage: " << program
       << " [--kernel NAME] [--m M] [--n N] [--k K] [--iters N]\n"
-      << "Kernels: row-strip, col-strip, naive, naive-BXxBY,\n"
-      << "  naive-coarsened, naive-coarsened-64x64-TMxTN,\n"
-      << "  tiled-basic, tiled-general,\n"
-      << "  tiled-general-BMxBNxBK, tiled-general-coarsened,\n"
-      << "  tiled-general-coarsened-BMxBNxBK-TMxTN\n"
-      << "Naive configurations: 32x1, 32x2, 32x4, 32x8, 32x16, 32x32\n"
-      << "Naive-coarsened configurations: 2x2, 2x4, 4x2, 4x4, 4x8,"
-         " 8x4, 8x8\n"
-      << "Tiled-general configurations: 8x8x8, 16x16x8, 16x16x16,"
-         " 32x16x16, 16x32x16, 32x32x16, 32x8x16, 8x32x16\n"
-      << "Coarsened configurations: 32x32x8-2x2, 64x64x8-4x4,"
-         " 64x64x16-4x4, 128x64x8-8x4\n";
+      << "Kernels: naive-8x8, naive-16x16, naive-32x32,\n"
+      << "  naive-64x16, naive-16x64\n";
 }
 
 int positive_int(const char* value, const char* option) {
