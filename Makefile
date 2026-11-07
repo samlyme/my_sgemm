@@ -37,7 +37,11 @@ KERNELS ?= cublas naive-8x8 naive-16x16 naive-32x32 naive-64x16 naive-16x64 \
 	tiled-general-coarsened-64x128x8-4x8 \
 	tiled-general-coarsened-64x128x8-8x8 \
 	tiled-general-coarsened-64x128x16-4x8 \
-	tiled-general-coarsened-64x128x16-8x8
+	tiled-general-coarsened-64x128x16-8x8 \
+	tiled-general-coarsened-96x96x32-8x8 \
+	tiled-general-coarsened-128x128x32-8x8 \
+	tiled-general-coarsened-192x128x32-8x8 \
+	tiled-general-coarsened-128x192x32-8x8
 SIZES ?= 256 512 1024 2048 4096 8192
 SWEEP_OUTPUT ?= benchmarks/sweep.csv
 SWEEP_ITERS ?=

@@ -377,6 +377,14 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-64x128x16-4x8";
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
     return "tiled-general-coarsened-64x128x16-8x8";
+  case SgemmKernel::TiledGeneralCoarsened96x96x32_8x8:
+    return "tiled-general-coarsened-96x96x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x128x32_8x8:
+    return "tiled-general-coarsened-128x128x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened192x128x32_8x8:
+    return "tiled-general-coarsened-192x128x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x192x32_8x8:
+    return "tiled-general-coarsened-128x192x32-8x8";
   }
   return "unknown";
 }
@@ -504,6 +512,18 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general-coarsened-64x128x16-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x128x16_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-96x96x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened96x96x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x128x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x128x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-192x128x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened192x128x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x192x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x192x32_8x8;
   }
   throw std::invalid_argument(std::string("unknown kernel: ") + name);
 }
@@ -647,6 +667,22 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
     launch_sgemm_tiled_general_coarsened<64, 128, 16, 8, 8>(M, N, K, alpha, A,
                                                             B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened96x96x32_8x8:
+    launch_sgemm_tiled_general_coarsened<96, 96, 32, 8, 8>(M, N, K, alpha, A,
+                                                           B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x128x32_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 128, 32, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened192x128x32_8x8:
+    launch_sgemm_tiled_general_coarsened<192, 128, 32, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x192x32_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 192, 32, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
     break;
   }
 }

@@ -59,6 +59,15 @@ make plots
 
 The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The `cublas` kernel uses `cublasSgemm` in pedantic math mode as an FP32 performance reference. The naive kernel is available with `32x1`, `32x2`, `32x4`, `32x8`, `32x16`, and `32x32` thread blocks; plain `naive` aliases `naive-32x32`. Keeping 32 threads in the x dimension preserves one horizontal output row per warp while varying the number of warps per block. The `naive-coarsened-64x64-TMxTN` variants keep a 64x64 output tile while varying each thread's register tile; plain `naive-coarsened` aliases the `4x4` variant. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
+Ignoring the final C read/write, a coarsened block tile has theoretical FP32 arithmetic intensity `BM * BN / (2 * (BM + BN))` flop/byte. The larger `BK=32`, `TM=TN=8` variants extend the tested range toward the device ridge point:
+
+| Block tile | Arithmetic intensity |
+| --- | ---: |
+| 64x64 | 16.0 flop/byte |
+| 96x96 | 24.0 flop/byte |
+| 128x128 | 32.0 flop/byte |
+| 192x128 / 128x192 | 38.4 flop/byte |
+
 The benchmark tables report performance as a percentage of peak FP32 throughput. `PEAK_GFLOPS` defaults to `35580` for an RTX 3090; override it for a different GPU.
 
 The `sweep` target tests every kernel at `M=N=K` sizes `256 512 1024 2048 4096 8192`. Naive kernels use fewer iterations because they become expensive quickly; cuBLAS and all tiled families use substantially more iterations for stable timings. Cached rows are reused only when the kernel, size, and requested iteration count all match, so changing the iteration policy automatically refreshes the affected measurements.
