@@ -83,6 +83,32 @@ memory latency. The 16x16 launch has 11.96 active and 1.46 eligible warps per
 scheduler, compared with 7.96/0.36 for 8x8 and 8.00/1.18 for 32x32. That extra
 latency hiding outweighs 32x32's better memory coalescing and cache behavior.
 
+### Cache hit rates and miss volume
+
+The L1 global-load hit rate rises with the x dimension: 83.51% for 8x8, 87.13%
+for 16x16, and 94.98% for 32x32. A wider block gives more warps within the block
+an opportunity to reuse the same B row segment. The 32x32 mapping has 32 such
+warps and also maps each warp to one output row, producing the strongest L1
+locality. The 8x8 block has only two warps and therefore the least intra-block B
+reuse.
+
+The L2 hit rates need to be interpreted together with the number of requests.
+Although 16x16 and 32x32 have nearly identical L2 load hit rates (49.77% and
+49.21%), 16x16 produces about twice as many L1 misses and consequently twice as
+many L2 read misses. The absolute counts are:
+
+| Block | L1 load hit rate | L1 load-miss sectors | L2 load hit rate | L2 device read-miss sectors |
+| --- | ---: | ---: | ---: | ---: |
+| 8x8 | 83.51% | 1.771B | 39.20% | 1.076B |
+| 16x16 | 87.13% | 1.106B | 49.77% | 0.552B |
+| 32x32 | 94.98% | 0.539B | 49.21% | 0.273B |
+
+Thus, 32x32 has the best cache behavior, but cache hit rate alone does not decide
+the winner. The 16x16 block accepts moderately higher cache traffic in exchange
+for 100% occupancy and better latency hiding. The 8x8 block has both the lowest
+hit rates and insufficient occupancy, so cache misses turn directly into
+long-scoreboard stalls.
+
 ### Why 8x8 falls far behind
 
 A smaller x dimension creates more x-direction blocks. Because each block
