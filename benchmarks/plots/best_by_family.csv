@@ -27,5 +27,5 @@ Coarsened tiled,256,tiled-general-coarsened-64x64x32-4x4,1000,0.020000,1679.721
 Coarsened tiled,512,tiled-general-coarsened-64x64x32-4x4,500,0.038000,7024.505
 Coarsened tiled,1024,tiled-general-coarsened-64x64x32-8x4,250,0.194000,11085.015
 Coarsened tiled,2048,tiled-general-coarsened-64x64x32-8x4,100,1.260000,13631.479
-Coarsened tiled,4096,tiled-general-coarsened-64x64x32-8x4,30,9.908000,13871.439
-Coarsened tiled,8192,tiled-general-coarsened-64x64x32-8x4,10,77.594000,14170.076
+Coarsened tiled,4096,tiled-general-coarsened-128x128x32-8x8,30,9.485000,14490.757
+Coarsened tiled,8192,tiled-general-coarsened-128x128x32-8x8,10,73.701000,14918.593
