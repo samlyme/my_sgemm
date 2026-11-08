@@ -345,6 +345,8 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-64x64x8-8x4";
   case SgemmKernel::TiledGeneralCoarsened64x64x8_8x8:
     return "tiled-general-coarsened-64x64x8-8x8";
+  case SgemmKernel::TiledGeneralCoarsened64x64x16_2x2:
+    return "tiled-general-coarsened-64x64x16-2x2";
   case SgemmKernel::TiledGeneralCoarsened64x64x16_4x4:
     return "tiled-general-coarsened-64x64x16-4x4";
   case SgemmKernel::TiledGeneralCoarsened64x64x16_4x8:
@@ -353,6 +355,8 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-64x64x16-8x4";
   case SgemmKernel::TiledGeneralCoarsened64x64x16_8x8:
     return "tiled-general-coarsened-64x64x16-8x8";
+  case SgemmKernel::TiledGeneralCoarsened64x64x32_2x2:
+    return "tiled-general-coarsened-64x64x32-2x2";
   case SgemmKernel::TiledGeneralCoarsened64x64x32_4x4:
     return "tiled-general-coarsened-64x64x32-4x4";
   case SgemmKernel::TiledGeneralCoarsened64x64x32_4x8:
@@ -369,6 +373,10 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-128x64x16-8x4";
   case SgemmKernel::TiledGeneralCoarsened128x64x16_8x8:
     return "tiled-general-coarsened-128x64x16-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x64x32_8x4:
+    return "tiled-general-coarsened-128x64x32-8x4";
+  case SgemmKernel::TiledGeneralCoarsened128x64x32_8x8:
+    return "tiled-general-coarsened-128x64x32-8x8";
   case SgemmKernel::TiledGeneralCoarsened64x128x8_4x8:
     return "tiled-general-coarsened-64x128x8-4x8";
   case SgemmKernel::TiledGeneralCoarsened64x128x8_8x8:
@@ -377,12 +385,32 @@ const char *kernel_name(SgemmKernel kernel) {
     return "tiled-general-coarsened-64x128x16-4x8";
   case SgemmKernel::TiledGeneralCoarsened64x128x16_8x8:
     return "tiled-general-coarsened-64x128x16-8x8";
+  case SgemmKernel::TiledGeneralCoarsened64x128x32_4x8:
+    return "tiled-general-coarsened-64x128x32-4x8";
+  case SgemmKernel::TiledGeneralCoarsened64x128x32_8x8:
+    return "tiled-general-coarsened-64x128x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened96x96x8_8x8:
+    return "tiled-general-coarsened-96x96x8-8x8";
+  case SgemmKernel::TiledGeneralCoarsened96x96x16_8x8:
+    return "tiled-general-coarsened-96x96x16-8x8";
   case SgemmKernel::TiledGeneralCoarsened96x96x32_8x8:
     return "tiled-general-coarsened-96x96x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x128x8_8x8:
+    return "tiled-general-coarsened-128x128x8-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x128x16_8x8:
+    return "tiled-general-coarsened-128x128x16-8x8";
   case SgemmKernel::TiledGeneralCoarsened128x128x32_8x8:
     return "tiled-general-coarsened-128x128x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened192x128x8_8x8:
+    return "tiled-general-coarsened-192x128x8-8x8";
+  case SgemmKernel::TiledGeneralCoarsened192x128x16_8x8:
+    return "tiled-general-coarsened-192x128x16-8x8";
   case SgemmKernel::TiledGeneralCoarsened192x128x32_8x8:
     return "tiled-general-coarsened-192x128x32-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x192x8_8x8:
+    return "tiled-general-coarsened-128x192x8-8x8";
+  case SgemmKernel::TiledGeneralCoarsened128x192x16_8x8:
+    return "tiled-general-coarsened-128x192x16-8x8";
   case SgemmKernel::TiledGeneralCoarsened128x192x32_8x8:
     return "tiled-general-coarsened-128x192x32-8x8";
   }
@@ -465,6 +493,9 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general-coarsened-64x64x8-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x64x8_8x8;
   }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x16-2x2") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x16_2x2;
+  }
   if (std::strcmp(name, "tiled-general-coarsened-64x64x16-4x4") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x64x16_4x4;
   }
@@ -476,6 +507,9 @@ SgemmKernel parse_kernel(const char *name) {
   }
   if (std::strcmp(name, "tiled-general-coarsened-64x64x16-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x64x16_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x64x32-2x2") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x64x32_2x2;
   }
   if (std::strcmp(name, "tiled-general-coarsened-64x64x32-4x4") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x64x32_4x4;
@@ -501,6 +535,12 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general-coarsened-128x64x16-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened128x64x16_8x8;
   }
+  if (std::strcmp(name, "tiled-general-coarsened-128x64x32-8x4") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x64x32_8x4;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x64x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x64x32_8x8;
+  }
   if (std::strcmp(name, "tiled-general-coarsened-64x128x8-4x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x128x8_4x8;
   }
@@ -513,14 +553,44 @@ SgemmKernel parse_kernel(const char *name) {
   if (std::strcmp(name, "tiled-general-coarsened-64x128x16-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened64x128x16_8x8;
   }
+  if (std::strcmp(name, "tiled-general-coarsened-64x128x32-4x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x128x32_4x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-64x128x32-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened64x128x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-96x96x8-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened96x96x8_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-96x96x16-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened96x96x16_8x8;
+  }
   if (std::strcmp(name, "tiled-general-coarsened-96x96x32-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened96x96x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x128x8-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x128x8_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x128x16-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x128x16_8x8;
   }
   if (std::strcmp(name, "tiled-general-coarsened-128x128x32-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened128x128x32_8x8;
   }
+  if (std::strcmp(name, "tiled-general-coarsened-192x128x8-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened192x128x8_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-192x128x16-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened192x128x16_8x8;
+  }
   if (std::strcmp(name, "tiled-general-coarsened-192x128x32-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened192x128x32_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x192x8-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x192x8_8x8;
+  }
+  if (std::strcmp(name, "tiled-general-coarsened-128x192x16-8x8") == 0) {
+    return SgemmKernel::TiledGeneralCoarsened128x192x16_8x8;
   }
   if (std::strcmp(name, "tiled-general-coarsened-128x192x32-8x8") == 0) {
     return SgemmKernel::TiledGeneralCoarsened128x192x32_8x8;
@@ -604,6 +674,10 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_general_coarsened<64, 64, 8, 8, 8>(M, N, K, alpha, A, B,
                                                           beta, C);
     break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x16_2x2:
+    launch_sgemm_tiled_general_coarsened<64, 64, 16, 2, 2>(M, N, K, alpha, A, B,
+                                                           beta, C);
+    break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_4x4:
     launch_sgemm_tiled_general_coarsened<64, 64, 16, 4, 4>(M, N, K, alpha, A, B,
                                                            beta, C);
@@ -618,6 +692,10 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x16_8x8:
     launch_sgemm_tiled_general_coarsened<64, 64, 16, 8, 8>(M, N, K, alpha, A, B,
+                                                           beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x64x32_2x2:
+    launch_sgemm_tiled_general_coarsened<64, 64, 32, 2, 2>(M, N, K, alpha, A, B,
                                                            beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened64x64x32_4x4:
@@ -652,6 +730,14 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_general_coarsened<128, 64, 16, 8, 8>(M, N, K, alpha, A,
                                                             B, beta, C);
     break;
+  case SgemmKernel::TiledGeneralCoarsened128x64x32_8x4:
+    launch_sgemm_tiled_general_coarsened<128, 64, 32, 8, 4>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x64x32_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 64, 32, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
   case SgemmKernel::TiledGeneralCoarsened64x128x8_4x8:
     launch_sgemm_tiled_general_coarsened<64, 128, 8, 4, 8>(M, N, K, alpha, A, B,
                                                            beta, C);
@@ -668,16 +754,56 @@ void launch_sgemm(const SgemmKernel kernel, const int M, const int N,
     launch_sgemm_tiled_general_coarsened<64, 128, 16, 8, 8>(M, N, K, alpha, A,
                                                             B, beta, C);
     break;
+  case SgemmKernel::TiledGeneralCoarsened64x128x32_4x8:
+    launch_sgemm_tiled_general_coarsened<64, 128, 32, 4, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened64x128x32_8x8:
+    launch_sgemm_tiled_general_coarsened<64, 128, 32, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened96x96x8_8x8:
+    launch_sgemm_tiled_general_coarsened<96, 96, 8, 8, 8>(M, N, K, alpha, A, B,
+                                                          beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened96x96x16_8x8:
+    launch_sgemm_tiled_general_coarsened<96, 96, 16, 8, 8>(M, N, K, alpha, A,
+                                                           B, beta, C);
+    break;
   case SgemmKernel::TiledGeneralCoarsened96x96x32_8x8:
     launch_sgemm_tiled_general_coarsened<96, 96, 32, 8, 8>(M, N, K, alpha, A,
                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x128x8_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 128, 8, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x128x16_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 128, 16, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x128x32_8x8:
     launch_sgemm_tiled_general_coarsened<128, 128, 32, 8, 8>(M, N, K, alpha, A,
                                                              B, beta, C);
     break;
+  case SgemmKernel::TiledGeneralCoarsened192x128x8_8x8:
+    launch_sgemm_tiled_general_coarsened<192, 128, 8, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened192x128x16_8x8:
+    launch_sgemm_tiled_general_coarsened<192, 128, 16, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
+    break;
   case SgemmKernel::TiledGeneralCoarsened192x128x32_8x8:
     launch_sgemm_tiled_general_coarsened<192, 128, 32, 8, 8>(M, N, K, alpha, A,
+                                                             B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x192x8_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 192, 8, 8, 8>(M, N, K, alpha, A,
+                                                            B, beta, C);
+    break;
+  case SgemmKernel::TiledGeneralCoarsened128x192x16_8x8:
+    launch_sgemm_tiled_general_coarsened<128, 192, 16, 8, 8>(M, N, K, alpha, A,
                                                              B, beta, C);
     break;
   case SgemmKernel::TiledGeneralCoarsened128x192x32_8x8:

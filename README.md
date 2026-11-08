@@ -57,9 +57,11 @@ make plots
 ./build/sgemm_bench --help
 ```
 
-The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The `cublas` kernel uses `cublasSgemm` in pedantic math mode as an FP32 performance reference. The naive kernel is available with `32x1`, `32x2`, `32x4`, `32x8`, `32x16`, and `32x32` thread blocks; plain `naive` aliases `naive-32x32`. Keeping 32 threads in the x dimension preserves one horizontal output row per warp while varying the number of warps per block. The `naive-coarsened-64x64-TMxTN` variants keep a 64x64 output tile while varying each thread's register tile; plain `naive-coarsened` aliases the `4x4` variant. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
+The program checks the selected kernel against a CPU reference, then reports average latency and GFLOP/s. The `cublas` kernel uses `cublasSgemm` in pedantic math mode as an FP32 performance reference. The naive kernel is available with several two-dimensional thread-block shapes; plain `naive` aliases `naive-32x32`. The default `make` benchmark also includes several `tiled-general-BMxBNxBK` and `tiled-general-coarsened-BMxBNxBK-TMxTN` configurations.
 
-Ignoring the final C read/write, a coarsened block tile has theoretical FP32 arithmetic intensity `BM * BN / (2 * (BM + BN))` flop/byte. The larger `BK=32`, `TM=TN=8` variants extend the tested range toward the device ridge point:
+The coarsened sweep tests `BK=8`, `16`, and `32` for every represented block-tile/thread-tile pair. It covers 64x64, 96x96, 128x64, 64x128, 128x128, 192x128, and 128x192 block tiles, with additional 2x2, 4x4, 4x8, and 8x4 thread-tile comparisons where the selected block shape supports them.
+
+Ignoring the final C read/write, a coarsened block tile has theoretical FP32 arithmetic intensity `BM * BN / (2 * (BM + BN))` flop/byte. The larger block-tile variants extend the tested range toward the device ridge point:
 
 | Block tile | Arithmetic intensity |
 | --- | ---: |
